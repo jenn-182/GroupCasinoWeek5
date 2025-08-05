@@ -32,8 +32,10 @@ public class Deck {
         return deck.pop();
     }
 
-    public void returnCardToDeck(Card card){
-        deck.push(card);
+    public void returnCardsToDeck(Stack<Card> returnedHand){
+        for (Card card : returnedHand) {
+            deck.push(card);
+        }
     }
 
 
