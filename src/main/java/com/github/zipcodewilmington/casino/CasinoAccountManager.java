@@ -1,15 +1,33 @@
 package com.github.zipcodewilmington.casino;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * Created by leon on 7/21/2020.
- * `ArcadeAccountManager` stores, manages, and retrieves `ArcadeAccount` objects
+ * `Casino Account Manager` stores, manages, and retrieves `Casino Account` objects
  * it is advised that every instruction in this class is logged
  */
 public class CasinoAccountManager {
+
+    private Map<String, CasinoAccount> accounts;
+
+    //Constructs a new CasinoAccountManager with an empty account list
+    public CasinoAccountManager() {
+        this.accounts = new HashMap<>();
+    }
+
+
+    //Load all Casino Account objects
+    public Map<String, CasinoAccount> loadAccounts() {
+        return accounts;
+    }
     /**
      * @param accountName     name of account to be returned
      * @param accountPassword password of account to be returned
-     * @return `ArcadeAccount` with specified `accountName` and `accountPassword`
+     * @return `CasinoAccount` with specified `accountName` and `accountPassword`
      */
     public CasinoAccount getAccount(String accountName, String accountPassword) {
         String currentMethodName = new Object(){}.getClass().getEnclosingMethod().getName();
@@ -19,11 +37,11 @@ public class CasinoAccountManager {
     }
 
     /**
-     * logs & creates a new `ArcadeAccount`
+     * logs & creates a new `CasinoAccount`
      *
      * @param accountName     name of account to be created
      * @param accountPassword password of account to be created
-     * @return new instance of `ArcadeAccount` with specified `accountName` and `accountPassword`
+     * @return new instance of `CasinoAccount` with specified `accountName` and `accountPassword`
      */
     public CasinoAccount createAccount(String accountName, String accountPassword) {
         String currentMethodName = new Object(){}.getClass().getEnclosingMethod().getName();
@@ -33,9 +51,9 @@ public class CasinoAccountManager {
     }
 
     /**
-     * logs & registers a new `ArcadeAccount` to `this.getArcadeAccountList()`
+     * logs & registers a new `CasinoAccount` to `this.getCasinoAccountList()`
      *
-     * @param casinoAccount the arcadeAccount to be added to `this.getArcadeAccountList()`
+     * @param casinoAccount the casinoAccount to be added to `this.getCasinoAccountList()`
      */
     public void registerAccount(CasinoAccount casinoAccount) {
         String currentMethodName = new Object(){}.getClass().getEnclosingMethod().getName();
