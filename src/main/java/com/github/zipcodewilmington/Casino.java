@@ -2,14 +2,14 @@ package com.github.zipcodewilmington;
 
 import com.github.zipcodewilmington.casino.CasinoAccount;
 import com.github.zipcodewilmington.casino.CasinoAccountManager;
-import com.github.zipcodewilmington.casino.ConsoleUI;
+import com.github.zipcodewilmington.casino.GameInterface;
 import com.github.zipcodewilmington.casino.Player;
 import com.github.zipcodewilmington.casino.games.Numberguess.NumberGuessGame;
 import com.github.zipcodewilmington.casino.games.Numberguess.NumberGuessPlayer;
 import com.github.zipcodewilmington.casino.games.slots.SlotsGame;
 import com.github.zipcodewilmington.casino.games.slots.SlotsPlayer;
-import com.github.zipcodewilmington.utils.AnsiColor;
-import com.github.zipcodewilmington.utils.IOConsole;
+import com.github.zipcodewilmington.casino.ui.AnsiColor;
+import com.github.zipcodewilmington.casino.ui.IOConsole;
 
 /**
  * Created by leon on 7/21/2020.
@@ -71,7 +71,7 @@ public class Casino implements Runnable {
     }
 
     private void play(Object gameObject, Object playerObject) {
-        ConsoleUI game = (ConsoleUI)gameObject;
+        GameInterface game = (GameInterface)gameObject;
         Player player = (Player)playerObject;
         game.add(player);
         game.run();

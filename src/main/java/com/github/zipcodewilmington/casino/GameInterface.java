@@ -3,7 +3,7 @@ package com.github.zipcodewilmington.casino;
 /**
  * Created by leon on 7/21/2020.
  */
-public interface ConsoleUI extends Runnable {
+public interface GameInterface extends Runnable {
     /**
      * adds a player to the game
      * @param player the player to be removed from the game

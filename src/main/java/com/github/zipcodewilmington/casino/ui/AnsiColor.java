@@ -1,4 +1,4 @@
-package com.github.zipcodewilmington.utils;
+package com.github.zipcodewilmington.casino.ui;
 
 /**
  * Created by leon on 7/21/2020.

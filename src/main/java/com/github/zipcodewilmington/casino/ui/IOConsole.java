@@ -1,4 +1,4 @@
-package com.github.zipcodewilmington.utils;
+package com.github.zipcodewilmington.casino.ui;
 
 import java.io.InputStream;
 import java.io.PrintStream;
