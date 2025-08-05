@@ -6,7 +6,8 @@ import java.util.List;
 /**
  * Created by leon on 7/21/2020.
  * `ArcadeAccount` is registered for each user of the `Arcade`.
- * The `ArcadeAccount` is used to log into the system to select a `Game` to play.
+ * The `ArcadeAccount` is used to log into the system to select a `Game` to
+ * play.
  */
 public class CasinoAccount {
     Double balance;
@@ -46,7 +47,7 @@ public class CasinoAccount {
             password = newPassword;
             System.out.println("Current password is correct, password has changed");
             return true;
-        }else{
+        } else {
             System.out.println("Current password is incorrect, did not change password");
         }
         return false;
