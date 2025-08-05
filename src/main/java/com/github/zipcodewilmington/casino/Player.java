@@ -6,7 +6,7 @@ package com.github.zipcodewilmington.casino;
  * All players must have reference to the `ArcadeAccount` used to log into the `Arcade` system.
  * All players are capable of `play`ing a game.
  */
-public interface PlayerInterface {
+public interface Player {
     /**
      * @return the `ArcadeAccount` used to log into the `Arcade` system to play this game
      */
