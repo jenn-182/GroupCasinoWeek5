@@ -1,38 +1,35 @@
 package com.github.zipcodewilmington.casino.games.Craps;
-
-import com.github.zipcodewilmington.casino.games.Craps.Dice;  // need to import each class to make it work
-
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Scanner;
 
 import com.github.zipcodewilmington.casino.Player;
+import com.github.zipcodewilmington.casino.games.Craps.CrapsBetting.BetType;
 
 public class Craps {
 
     private final Dice dice1 = new Dice();                      // creates an instances of dice class
     private final Dice dice2 = new Dice();
     private Scanner scanner = new Scanner(System.in);           // get Input from keybaord
-    private Map<Player, String> playerBets = new HashMap<>();   // hashmap to store player name and bets type
+    private final CrapsBetting betting = new CrapsBetting(); // handles all betting logic
 
     public void play(List<Player> players) {
         System.out.println("Welcome to Craps!!!");
 
-        Dice dice1 = new Dice();
-        Dice dice2 = new Dice();
-
-        // select the shooter and takes betstype
         Player shooter = chooseRandomShooter(players);          // selects shooter 
-        playerBets.put(player, betType(shooter));               //saves shooter in hashmap
+       
         for (Player player : players) {                         // loops through hasmap
+             BetType betType;                        
+
             if (player.equals(shooter)) {                       // if player is shooter sets as pass 
-                playerBets.put(player, "pass");
+                betType = CrapsBetting.BetType.PASS_LINE;
+                System.out.println(player.getUsername() + " is the shooter and automatically on PASS line.");
             } else {
-                String betType = betType(player);                // the rest are asked for bet type
-                playerBets.put(player, betType);
+                betType = askBetType(player);                // the rest are asked for bet type;
             }
+            double betAmount = askBetAmount(player);
+            betting.placeBet(player, betType, betAmount);
+
         }
 
         // first roll 
@@ -46,22 +43,22 @@ public class Craps {
         switch (result) {
             case WIN:
                 System.out.println("Result: Pass line bets WIN!");
-                payOutBets(players, bets, true);            // might have to create a bet class
+                betting.payOut(true);            // might have to create a bet class
                 break;
             case LOSE:
                 System.out.println("Result: Pass line bets LOSE!");
-                payOutBets(players, bets, false);
+                betting.payOut(false);
                 break;
             case POINT:
-                System.out.println("Point established: " + total);
-                playPointPhase(players, bets, total, dice1, dice2);
+                System.out.println("The Point is set to: " + total);
+                playPointPhase(players, total);
                 break;
 
         }
     }
 
     // point base game
-    private void playPointPhase(List<Player> players, Map<Player, String> bets, int point, Dice dice1, Dice dice2) {
+    private void playPointPhase(List<Player> players,int point) {
         while (true) {
             int roll1 = dice1.roll();
             int roll2 = dice2.roll();
@@ -70,32 +67,17 @@ public class Craps {
 
             if (total == point) {
                 System.out.println("Point hit! Pass line wins!");
-                payOutBets(players, bets, true);
+                betting.payOut(true); 
                 break;
             } else if (total == 7) {
                 System.out.println("Seven out! Don't pass wins!");
-                payOutBets(players, bets, false);
+                betting.payOut(false);
                 break;
             }
         }
     }
 
-    // Pass line and Don't pass line swtich case
-    private void payOutBets(List<Player> players, Map<Player, String> bets, boolean passWins) {
-        for (Player player : players) {
-            String betType = bets.get(player);
-            if ((passWins && betType.equals("pass")) || (!passWins && betType.equals("dont"))) {
-                System.out.println(player.getName() + " wins the bet!");
-                player.addBalance(10); // payout logic here
-            } else {
-                System.out.println(player.getName() + " loses the bet.");
-                player.subtractBalance(10); // losing logic here
-            }
-        }
-    }
-    // function to ask if the player wants to bet on PASS or DONT PASS line
-
-    private String betType(Player player) {
+    private BetType askBetType(Player player) {
         System.out.println("player.getName()" + ", choose your bet type (pass/don't pass): ");
         String betType = scanner.nextLine().trim().toLowerCase();
 
@@ -104,7 +86,7 @@ public class Craps {
             betType = scanner.nextLine().trim().toLowerCase();
         }
 
-        return betType;
+       return betType.startsWith("pass") ? CrapsBetting.BetType.PASS_LINE : CrapsBetting.BetType.DONT_PASS_LINE;
     }
 
     // set a random player as the shooter for a round of game
@@ -122,7 +104,7 @@ public class Craps {
         WIN, LOSE, POINT
     }
 
-    // fisrt roll enmu switch case
+    // first roll enmu switch case
     private FirstRollResult evaluateFirstRoll(int total) {
         switch (total) {
             case 7:
@@ -134,6 +116,24 @@ public class Craps {
                 return FirstRollResult.LOSE;
             default:
                 return FirstRollResult.POINT;
+        }
+    }
+
+        // Betting Amount
+       private double askBetAmount(Player player) {
+        System.out.println(player.getUsername() + ", enter your bet amount: ");
+        while (true) {
+            try {
+                double amount = Double.parseDouble(scanner.nextLine());
+                if (amount > 0 && amount <= player.getAccount().getBalance()) {
+                    return amount;
+                } else {
+                    System.out.println("Invalid amount. Enter a positive number up to your balance (" 
+                        + player.getAccount().getBalance() + "): ");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid number. Please enter a valid bet amount: ");
+            }
         }
     }
 
