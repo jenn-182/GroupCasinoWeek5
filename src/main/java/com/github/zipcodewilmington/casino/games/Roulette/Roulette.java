@@ -44,7 +44,7 @@ public class Roulette {
         wheel[35] = new RouletteNumber(35, "Red");
         wheel[36] = new RouletteNumber(36, "Red");
         wheel[37] = new RouletteNumber(-1, "Green");
-        
+
     }
 
     public RouletteNumber spin() {
@@ -52,9 +52,9 @@ public class Roulette {
         int randomPosition = random.nextInt(38);
         return wheel[randomPosition];
     }
-    
 
     public static void main(String[] args) {
+        // Test
         RouletteNumber red7 = new RouletteNumber(7, "RED");
         System.out.println("Number: " + red7.getNumber() + ", Color: " + red7.getColor());
 
@@ -62,9 +62,15 @@ public class Roulette {
         game.createWheel();
         System.out.println("wheel[0]: " + game.wheel[0].getNumber() + "," + game.wheel[0].getColor());
 
+        RouletteBet playerBet = new RouletteBet(7, 10.0); // Bet $10 on number 7
         RouletteNumber winner = game.spin();
         System.out.println("Winner: " + winner.getNumber() + ", " + winner.getColor());
+
+        if (playerBet.checkWin(winner)) {
+            System.out.println("YOU WON! Payout: $" + playerBet.calculatePayout());
+        } else {
+            System.out.println("Sorry, you lost your $10 bet.");
+        }
     }
 
-    
 }
