@@ -62,6 +62,10 @@ public class Roulette {
         game.createWheel();
         System.out.println("wheel[0]: " + game.wheel[0].getNumber() + "," + game.wheel[0].getColor());
 
+        // Test different bet types
+        RouletteBet redBet = new RouletteBet("RED", 25.0);
+        RouletteBet numberBet = new RouletteBet(7, 10.0);
+        RouletteBet oddBet = new RouletteBet("ODD", 15.0);
         RouletteBet playerBet = new RouletteBet(7, 10.0); // Bet $10 on number 7
         RouletteNumber winner = game.spin();
         System.out.println("Winner: " + winner.getNumber() + ", " + winner.getColor());
@@ -71,6 +75,7 @@ public class Roulette {
         } else {
             System.out.println("Sorry, you lost your $10 bet.");
         }
+
     }
 
 }
