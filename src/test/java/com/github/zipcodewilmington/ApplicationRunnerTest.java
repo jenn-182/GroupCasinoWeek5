@@ -18,4 +18,7 @@ public class ApplicationRunnerTest {
         // then
         Assert.assertNotNull(runnable.toString());
     }
+
+
+    
 }
