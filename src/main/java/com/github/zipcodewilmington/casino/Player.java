@@ -50,5 +50,5 @@ public class Player {
      * @param <SomeReturnType> specify any return type you would like here
      * @return whatever return value you would like
      */
-    <SomeReturnType> SomeReturnType play();
+    //<SomeReturnType> SomeReturnType play();
 }

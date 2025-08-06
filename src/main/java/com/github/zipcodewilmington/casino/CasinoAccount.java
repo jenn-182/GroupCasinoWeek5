@@ -14,6 +14,8 @@ public class CasinoAccount {
     String username;
     String password;
     List<String> gameHistory;
+    List <String> transactionHistory; // 
+    private Player player;
 
     // Constructor to initialize the CasinoAccount with a balance, username, and password
     CasinoAccount(Double initBalance, String username, String password){
@@ -21,6 +23,8 @@ public class CasinoAccount {
         this.username = username;
         this.password = password;
         this.gameHistory = new ArrayList<>();
+        this.player = new Player(username, this); 
+        this.transactionHistory = new ArrayList<>(); 
     }
 
     // Returns the balance of the account
@@ -33,6 +37,7 @@ public class CasinoAccount {
         return username;
     }
 
+
     // Checks if the password matches the stored password
     public boolean checkPassword(String password){
         if(this.password.equals(password))
@@ -40,6 +45,10 @@ public class CasinoAccount {
         return false;
     }
 
+    // Returns the Player associated with this account
+    public Player getPlayer() {
+        return player;
+    }
     // Changes the password of the account
     public boolean resetPassword(String currentPassword, String newPassword) {
     // Check if the current password matches the stored password{
@@ -98,6 +107,16 @@ public class CasinoAccount {
     // Retrieves the game history
     public List<String> getGameHistory() {
         return new ArrayList<>(gameHistory);
+    }
+
+    // Adds a transaction entry to the transaction history
+    public void addTransactionEntry(String entry) {
+        this.transactionHistory.add(entry);
+    }
+    
+    // Retrieves the transaction history
+    public List<String> getTransactionHistory() {
+        return new ArrayList<>(this.transactionHistory);
     }
 
     // String representation of the CasinoAccount
