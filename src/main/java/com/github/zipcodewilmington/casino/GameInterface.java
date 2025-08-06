@@ -8,13 +8,13 @@ public interface GameInterface extends Runnable {
      * adds a player to the game
      * @param player the player to be removed from the game
      */
-    void add(Player player);
+    boolean add(Player player);
 
     /**
      * removes a player from the game
      * @param player the player to be removed from the game
      */
-    void remove(Player player);
+    boolean remove(Player player);
 
     /**
      * specifies how the game will run
@@ -29,4 +29,6 @@ public interface GameInterface extends Runnable {
     int getMinimumBet();
  
     int getMaximumBet();
+
+    void play();
 }
