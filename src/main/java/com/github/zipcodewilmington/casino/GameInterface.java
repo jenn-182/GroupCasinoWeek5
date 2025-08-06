@@ -30,5 +30,4 @@ public interface GameInterface extends Runnable {
  
     int getMaximumBet();
 
-    void play();
 }
