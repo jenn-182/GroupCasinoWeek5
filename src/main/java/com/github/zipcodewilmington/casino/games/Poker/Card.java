@@ -5,11 +5,12 @@ public class Card {
     private String rank;
     private int value;
 
-    Card(String suit, String rank, int value){
+    Card(String suit, String rank, int value) {
         this.suit = suit;
         this.rank = rank;
         this.value = value;
     }
+
     public String getSuit() {
         return suit;
     }
@@ -20,5 +21,9 @@ public class Card {
 
     public int getValue() {
         return value;
+    }
+    @Override
+    public String toString(){
+        return rank+" of "+suit;
     }
 }
