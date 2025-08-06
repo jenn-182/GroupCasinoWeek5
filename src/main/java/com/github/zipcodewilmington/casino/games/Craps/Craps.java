@@ -55,6 +55,7 @@ public class Craps {
                 break;
 
         }
+        
     }
 
     // point base game
@@ -94,7 +95,7 @@ public class Craps {
 
         int index = new Random().nextInt(players.size());
         Player shooter = players.get(index);
-        System.out.println("shooter.getName()" + " has been selected as the shooter.");
+        System.out.println(shooter.getUsername() + " has been selected as the shooter.");
         return shooter;
 
     }
