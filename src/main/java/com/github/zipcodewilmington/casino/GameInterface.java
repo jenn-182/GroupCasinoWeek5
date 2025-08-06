@@ -21,7 +21,13 @@ public interface GameInterface extends Runnable {
      */
     void run();
 
-    int getMinPlayers();
+    boolean isGamblingGame();
+ 
+    String getGameName();
+ 
+    int getMinimumBet();
+ 
+    int getMaximumBet();
 
-    int getMaxPlayers();
+void play();
 }
