@@ -19,8 +19,9 @@ public interface GameInterface extends Runnable {
     /**
      * specifies how the game will run
      */
-    void run();
 
+    void play();
+ 
     boolean isGamblingGame();
  
     String getGameName();
@@ -29,5 +30,4 @@ public interface GameInterface extends Runnable {
  
     int getMaximumBet();
 
-    void play();
 }
