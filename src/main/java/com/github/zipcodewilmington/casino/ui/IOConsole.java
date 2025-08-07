@@ -468,4 +468,14 @@ public class IOConsole {
         
         getStringInput("\nPress ENTER to continue...");
     }
+
+    public Scanner getScanner() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getScanner'");
+    }
+
+    public String getInput() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getInput'");
+    }
 }

@@ -1,0 +1,45 @@
+6
+Geography
+What is the capital of France?
+London
+Paris
+Rome
+Berlin
+B
+Technology
+Which language runs in a web browser?
+Java
+C++
+Python
+JavaScript
+D
+Computer Science
+What does CPU stand for?
+Central Process Unit
+Central Processing Unit
+Computer Personal Unit
+Central Processor Utility
+B
+Technology
+What does HTML stand for?
+Hyper Trainer Marking Language
+Hyper Text Markup Language
+Hyper Text Mark Language
+Hyper Text Markdown Language
+B
+Geography
+Which continent is the Sahara Desert located in?
+Asia
+South America
+Africa
+Australia
+C
+Computer Science
+What does RAM stand for?
+Read Access Memory
+Random Access Memory
+Ready Action Memory
+Run Active Memory
+B
+
+
