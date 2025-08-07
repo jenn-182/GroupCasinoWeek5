@@ -79,7 +79,7 @@ public class Trivia implements Game {
     private final Map<String, String> questionsAndAnswers;
     private List<TriviaPlayer> playersInGame;
     private final int minPlayers = 1;
-    private final int maxPlayers = 4;
+    private final int maxPlayers = 2;
 
     public Trivia(IOConsole ioConsole) {
         this.ioConsole = ioConsole;
