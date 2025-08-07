@@ -10,12 +10,14 @@ public class RouletteGame implements GameInterface {
     Roulette wheel;
     double playerCurrentMoneyAmount = 1000.0;
     List<RouletteBet> currentBets;
+    List<RouletteBet> previousBets;  
     Scanner scanner = new Scanner(System.in);
-    private Player currentPlayer;  // Add player field
+    private Player currentPlayer;  
 
     public RouletteGame() {
         this.wheel = new Roulette();
         this.currentBets = new ArrayList<>();
+        this.previousBets = new ArrayList<>();  
         this.scanner = new Scanner(System.in);
     }
 
@@ -34,7 +36,6 @@ public class RouletteGame implements GameInterface {
             System.out.println(" ");
             playRound();
 
-            tableLimits();
 
             System.out.println("Try your luck again? (y/n)");
             String answer = scanner.next();
@@ -50,14 +51,18 @@ public class RouletteGame implements GameInterface {
     private void playRound() {
         currentBets.clear();
         showBettingMenu();
+        tableLimits();
 
         System.out.println("Place your bets! Choose!");
 
         while (true) {
             System.out.println("Which bet will you choose? (or 'done' to spin)");
             String betType = scanner.next();
+            
+            // Case insensitive input
+            betType = betType.toUpperCase().trim();
 
-            if (betType.equals("done")) {
+            if (betType.equals("DONE")) {
                 break;
             }
 
@@ -65,7 +70,7 @@ public class RouletteGame implements GameInterface {
             double amountBet = scanner.nextDouble();
 
             if (amountBet <= 0) {
-                System.out.println("Can't play with no money. Try a positive amount!");
+                System.out.println(" Invalid amount! Please enter a positive number.");
                 continue;
             }
 
@@ -79,14 +84,14 @@ public class RouletteGame implements GameInterface {
             }
 
             if (!bet.validateBet()) {
-                System.out.println("Not a valid bet type. Check the table limits!");
-                tableLimits();
+                System.out.println(" Invalid bet! Please check the options below:");
+                showBettingMenu();
                 continue;
             }
 
             if (amountBet > playerCurrentMoneyAmount) {
-                System.out
-                        .println("Not enough money! You have $" + playerCurrentMoneyAmount + " but need $" + amountBet);
+                System.out.println(" Not enough money! You have $" + String.format("%.2f", playerCurrentMoneyAmount) + 
+                                   " but need $" + String.format("%.2f", amountBet));
                 continue;
             }
 
@@ -134,11 +139,15 @@ public class RouletteGame implements GameInterface {
         // Show round summary
         double netResult = totalPayouts - totalBets;
         System.out.println("=== ROUND RESULTS ===");
-        System.out.println("Total Bets: $" + totalBets);
-        System.out.println("Total Payouts: $" + totalPayouts);
-        System.out.println("Net Result: $" + netResult);
-        System.out.println("New Balance: $" + playerCurrentMoneyAmount);
+        System.out.println("Total Bets: $" + String.format("%.2f", totalBets));
+        System.out.println("Total Payouts: $" + String.format("%.2f", totalPayouts));
+        System.out.println("Net Result: $" + String.format("%.2f", netResult));
+        System.out.println("New Balance: $" + String.format("%.2f", playerCurrentMoneyAmount));
         System.out.println("====================");
+
+        // At the end of the round, save current bets as previous
+        previousBets.clear();
+        previousBets.addAll(currentBets);
     }
 
     private void showBettingMenu() {
@@ -150,6 +159,19 @@ public class RouletteGame implements GameInterface {
         System.out.println("Dozens: 1ST12, 2ND12, 3RD12 - Pays 2:1");
         System.out.println("Columns: COLUMN1, COLUMN2, COLUMN3 - Pays 2:1");
         System.out.println("========================");
+    
+        // Show previous round bets if any
+        if (!previousBets.isEmpty()) {
+            System.out.println("=== PREVIOUS ROUND BETS ===");
+            for (RouletteBet bet : previousBets) {
+                if (bet.getBetType().equals("STRAIGHT_UP")) {
+                    System.out.println("$" + bet.getAmount() + " on number " + bet.getNumberBet());
+                } else {
+                    System.out.println("$" + bet.getAmount() + " on " + bet.getBetType());
+                }
+            }
+            System.out.println("============================");
+        }
     }
 
     private void tableLimits() {
