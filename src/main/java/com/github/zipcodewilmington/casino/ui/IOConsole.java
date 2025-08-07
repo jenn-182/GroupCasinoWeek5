@@ -14,6 +14,7 @@ public class IOConsole {
     private final PrintStream output;
     private final AnsiColor ansiColor;
     private Casino casino;
+    private final UIRender uiRender;
 
     public IOConsole(Casino casino) {
         this(AnsiColor.AUTO);
@@ -28,6 +29,7 @@ public class IOConsole {
         this.ansiColor = ansiColor;
         this.input = new Scanner(in);
         this.output = out;
+        this.uiRender = new UIRender();
     }
 
     private void flushScreen() {
@@ -91,12 +93,11 @@ public class IOConsole {
 
     public void start() {
         flushScreen();
-        displayMessage("Welcome to the Casino!", AnsiColor.PURPLE);
         boolean running = true;
         while (running) {
             flushScreen();
             displayMainMenu();
-            String choice = getColoredStringInput("Please select an option: ", AnsiColor.CYAN);
+            String choice = getColoredStringInput("Please select an option: ", AnsiColor.YELLOW);
 
             switch (choice) {
                 case "1":
@@ -121,17 +122,17 @@ public class IOConsole {
     }
 
     private void displayMainMenu() {
-        displayMessage("\n--- Main Menu ---", AnsiColor.BLUE);
-        displayMessage("1. Register", AnsiColor.WHITE);
-        displayMessage("2. Login", AnsiColor.WHITE);
-        displayMessage("3. Exit", AnsiColor.WHITE);
+        uiRender.displayWelcomeHeader();
+        uiRender.displayMainMenuHeader();
     }
 
     private void handleRegistration() {
         flushScreen();
         displayMessage("\n--- Registration ---", AnsiColor.BLUE);
         String username = getStringInput("Enter desired username: ");
+        System.out.println();
         String password = getStringInput("Enter desired password: ");
+        System.out.println();
 
         if (casino != null && casino.getAccountManager() != null) {
             CasinoAccount newAccount = casino.getAccountManager().createAccount(username, password);
@@ -159,23 +160,25 @@ public class IOConsole {
         flushScreen();
         displayMessage("\n--- Login ---", AnsiColor.BLUE);
         String username = getStringInput("Enter username: ");
+        System.out.println();
         String password = getStringInput("Enter password: ");
+        System.out.println();
 
         if (casino != null && casino.getAccountManager() != null) {
             CasinoAccount account = casino.getAccountManager().getAccount(username, password);
             if (account != null) {
                 flushScreen();
                 casino.setCurrentAccount(account);
-                displayMessage("Login successful! Welcome back " + username + "!", AnsiColor.GREEN);
+                displayMessage("\nLogin successful! Welcome back " + username + "!", AnsiColor.GREEN);
                 getStringInput("\nPress ENTER to continue to main menu...");
                 flushScreen();
                 handleCasinoMenu();
             } else {
-                displayMessage("Login failed. Invalid username or password.", AnsiColor.RED);
+                displayMessage("\nLogin failed. Invalid username or password.", AnsiColor.RED);
                 getStringInput("\nPress ENTER to continue...");
             }
         } else {
-            displayMessage("Casino system not available.", AnsiColor.RED);
+            displayMessage("\nCasino system not available.", AnsiColor.RED);
             getStringInput("\nPress ENTER to continue...");
         }
     }
@@ -186,14 +189,10 @@ public class IOConsole {
         while (inGame) {
             flushScreen();
             Player currentPlayer = casino.getCurrentAccount().getPlayer();
-            displayMessage("\n--- Casino Menu ---", AnsiColor.BLUE);
-            displayMessage("Welcome " + currentPlayer.getUsername() + "!", AnsiColor.GREEN);
-            displayMessage("1. Play Game", AnsiColor.WHITE);
-            displayMessage("2. Banking & Account Management", AnsiColor.WHITE);
-            displayMessage("3. Gaming Profile & History", AnsiColor.WHITE);
-            displayMessage("4. Logout", AnsiColor.WHITE);
 
-            String choice = getColoredStringInput("Select an option: ", AnsiColor.CYAN);
+            uiRender.displayCasinoMenuHeader(currentPlayer.getUsername());
+
+            String choice = getColoredStringInput("Select an option: ", AnsiColor.YELLOW);
             switch (choice) {
                 case "1":
                     flushScreen();
@@ -216,7 +215,7 @@ public class IOConsole {
                     break;
                 default:
                     flushScreen();
-                    displayMessage("Invalid option. Please try again.", AnsiColor.RED);
+                    displayMessage("Invalid option. Please try again.", AnsiColor.YELLOW);
                     getStringInput("\nPress ENTER to continue...");
                     break;
             }
@@ -225,15 +224,9 @@ public class IOConsole {
 
     private void selectGame(Player currentPlayer) {
         flushScreen();
-        displayMessage("\n--- Select a Game ---", AnsiColor.BLUE);
-        displayMessage("1. Roulette", AnsiColor.WHITE);
-        displayMessage("2. Poker", AnsiColor.WHITE);
-        displayMessage("3. Craps", AnsiColor.WHITE);
-        displayMessage("4. Trivia", AnsiColor.WHITE);
-        displayMessage("5. Number Guess", AnsiColor.WHITE);
-        displayMessage("6. Back to Main Menu", AnsiColor.WHITE);
+        uiRender.displayGameSelectionHeader();
 
-        String choice = getColoredStringInput("Select a game: ", AnsiColor.CYAN);
+        String choice = getColoredStringInput("Select a game: ", AnsiColor.YELLOW);
 
         switch (choice) {
             case "1":
@@ -276,17 +269,9 @@ public class IOConsole {
         boolean inBanking = true;
         while (inBanking) {
             flushScreen();
-            displayMessage("\n--- Banking & Account Management ---", AnsiColor.BLUE);
-            displayMessage("Account Holder: " + currentPlayer.getUsername(), AnsiColor.GREEN);
-            displayMessage("Current Balance: $" + String.format("%.2f", currentPlayer.getAccount().getBalance()),
-                    AnsiColor.YELLOW);
-            displayMessage("", AnsiColor.WHITE);
-            displayMessage("1. Deposit Money", AnsiColor.WHITE);
-            displayMessage("2. Withdraw Money", AnsiColor.WHITE);
-            displayMessage("3. View Transaction History", AnsiColor.WHITE);
-            displayMessage("4. Back to Main Menu", AnsiColor.WHITE);
+            uiRender.displayBankingMenuHeader(currentPlayer.getUsername(), currentPlayer.getAccount().getBalance());
 
-            String choice = getColoredStringInput("Select an option: ", AnsiColor.CYAN);
+            String choice = getColoredStringInput("Select an option: ", AnsiColor.YELLOW);
             switch (choice) {
                 case "1":
                     flushScreen();
@@ -318,10 +303,7 @@ public class IOConsole {
         while (inProfile) {
             flushScreen();
             displayGamingProfile(currentPlayer);
-            displayMessage("");
-            displayMessage("1. View Game History", AnsiColor.WHITE);
-            displayMessage("2. View Gaming Statistics", AnsiColor.WHITE);
-            displayMessage("3. Back to Main Menu", AnsiColor.WHITE);
+        uiRender.displayGamingProfileHeader(currentPlayer.getUsername());
 
             String choice = getColoredStringInput("Select an option: ", AnsiColor.CYAN);
             switch (choice) {

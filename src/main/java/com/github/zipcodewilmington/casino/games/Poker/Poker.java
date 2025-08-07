@@ -6,6 +6,7 @@ import com.github.zipcodewilmington.casino.GameInterface;
 import com.github.zipcodewilmington.casino.Player;
 
 public class Poker implements GameInterface {
+    
 
     private List<Player> players;
     private List<String> computers;
@@ -248,13 +249,21 @@ public class Poker implements GameInterface {
     }
 
     @Override
-    public void remove(Player player) {
-        players.remove(player);
+    public boolean remove(Player player) {
+        if (players.contains(player)) {
+            players.remove(player);
+            return true;
+        }
+        return false;
     }
 
     @Override
-    public void add(Player player) {
+    public boolean add(Player player) {
+        if (players.contains(player)) {
+            return false;
+        }
         players.add(player);
+        return true;
     }
 
     @Override
