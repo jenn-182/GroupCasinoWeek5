@@ -1,0 +1,271 @@
+package com.github.zipcodewilmington.casino.games.Roulette;
+
+import com.github.zipcodewilmington.casino.GameInterface;
+import com.github.zipcodewilmington.casino.Player;
+import java.util.Scanner;
+import java.util.List;
+import java.util.ArrayList;
+
+public class RouletteGame implements GameInterface {
+    Roulette wheel;
+    double playerCurrentMoneyAmount = 1000.0;
+    List<RouletteBet> currentBets;
+    List<RouletteBet> previousBets;  
+    Scanner scanner = new Scanner(System.in);
+    private Player currentPlayer;  
+
+    public RouletteGame() {
+        this.wheel = new Roulette();
+        this.currentBets = new ArrayList<>();
+        this.previousBets = new ArrayList<>();  
+        this.scanner = new Scanner(System.in);
+    }
+
+    // Keep your existing constructor too if needed
+    public RouletteGame(Roulette wheel, double PlayerCurrentMoneyAmount, List<RouletteBet> currentBets) {
+        this.wheel = wheel;
+        this.playerCurrentMoneyAmount = PlayerCurrentMoneyAmount;
+        this.currentBets = currentBets;
+    }
+
+    public void playGame() {
+        System.out.println("Welcome to Roulette!");
+
+        while (playerCurrentMoneyAmount >= 10.0) {
+            System.out.println("Your Money: $" + playerCurrentMoneyAmount);
+            System.out.println(" ");
+            playRound();
+
+
+            System.out.println("Try your luck again? (y/n)");
+            String answer = scanner.next();
+
+            if (answer.equals("n") || answer.equals("no")) {
+                break;
+            }
+
+        }
+
+    }
+
+    private void playRound() {
+        currentBets.clear();
+        showBettingMenu();
+        tableLimits();
+
+        System.out.println("Place your bets! Choose!");
+
+        while (true) {
+            System.out.println("Which bet will you choose? (or 'done' to spin)");
+            String betType = scanner.next();
+            
+            // Case insensitive input
+            betType = betType.toUpperCase().trim();
+
+            if (betType.equals("DONE")) {
+                break;
+            }
+
+            System.out.println("How much do you want to bet?");
+            double amountBet = scanner.nextDouble();
+
+            if (amountBet <= 0) {
+                System.out.println(" Invalid amount! Please enter a positive number.");
+                continue;
+            }
+
+            RouletteBet bet;
+
+            try {
+                int number = Integer.parseInt(betType);
+                bet = new RouletteBet(number, amountBet);
+            } catch (NumberFormatException e) {
+                bet = new RouletteBet(betType, amountBet);
+            }
+
+            if (!bet.validateBet()) {
+                System.out.println(" Invalid bet! Please check the options below:");
+                showBettingMenu();
+                continue;
+            }
+
+            if (amountBet > playerCurrentMoneyAmount) {
+                System.out.println(" Not enough money! You have $" + String.format("%.2f", playerCurrentMoneyAmount) + 
+                                   " but need $" + String.format("%.2f", amountBet));
+                continue;
+            }
+
+            currentBets.add(bet);
+            System.out.println("Bet placed: $" + amountBet + " on " + betType);
+
+        }
+
+        System.out.println("Here comes the spin");
+
+        RouletteNumber winner = wheel.spin();
+
+        System.out.println("Winner: " + winner.getNumber() + " " + winner.getColor());
+
+        // Option 1: Subtract all bets first, then add winnings
+        double totalBets = 0;
+        double totalPayouts = 0;
+
+        for (RouletteBet bet : currentBets) {
+            totalBets += bet.getAmount();  // Every bet costs money
+
+            if (bet.checkWin(winner)) {
+                double betAmount = bet.getAmount();
+                double payout = 0;
+
+                if (bet.getBetType().equals("STRAIGHT_UP")) {
+                    payout = betAmount * 35;
+                } else if (bet.getBetType().equals("RED") || bet.getBetType().equals("BLACK") || bet.getBetType().equals("ODD") || bet.getBetType().equals("EVEN") || bet.getBetType().equals("HIGH") || bet.getBetType().equals("LOW")) {
+                    payout = betAmount * 1;
+                } else if (bet.getBetType().equals("1ST12") || bet.getBetType().equals("2ND12") || bet.getBetType().equals("3RD12") || bet.getBetType().equals("COLUMN1") || bet.getBetType().equals("COLUMN2") || bet.getBetType().equals("COLUMN3")) {
+                    payout = betAmount * 2;
+                }
+
+                totalPayouts += betAmount + payout;  // Original bet + winnings
+                System.out.println("✅ WIN! Your " + bet.getBetType() + " bet pays $" + (betAmount + payout));
+            } else {
+                System.out.println("❌ LOSE: Your " + bet.getBetType() + " bet lost $" + bet.getAmount());
+            }
+        }
+
+        // Update money: subtract all bets, add back payouts for winners
+        playerCurrentMoneyAmount = playerCurrentMoneyAmount - totalBets + totalPayouts;
+
+
+        // Show round summary
+        double netResult = totalPayouts - totalBets;
+        System.out.println("=== ROUND RESULTS ===");
+        System.out.println("Total Bets: $" + String.format("%.2f", totalBets));
+        System.out.println("Total Payouts: $" + String.format("%.2f", totalPayouts));
+        System.out.println("Net Result: $" + String.format("%.2f", netResult));
+        System.out.println("New Balance: $" + String.format("%.2f", playerCurrentMoneyAmount));
+        System.out.println("====================");
+
+        // At the end of the round, save current bets as previous
+        previousBets.clear();
+        previousBets.addAll(currentBets);
+    }
+
+    private void showBettingMenu() {
+        System.out.println("=== BETTING OPTIONS ===");
+        System.out.println("Numbers: 0-36 (or -1 for 00) - Pays 35:1");
+        System.out.println("Colors: RED, BLACK - Pays 1:1");
+        System.out.println("Evens: ODD, EVEN - Pays 1:1");
+        System.out.println("Ranges: HIGH, LOW - Pays 1:1");
+        System.out.println("Dozens: 1ST12, 2ND12, 3RD12 - Pays 2:1");
+        System.out.println("Columns: COLUMN1, COLUMN2, COLUMN3 - Pays 2:1");
+        System.out.println("========================");
+    
+        // Show previous round bets if any
+        if (!previousBets.isEmpty()) {
+            System.out.println("=== PREVIOUS ROUND BETS ===");
+            for (RouletteBet bet : previousBets) {
+                if (bet.getBetType().equals("STRAIGHT_UP")) {
+                    System.out.println("$" + bet.getAmount() + " on number " + bet.getNumberBet());
+                } else {
+                    System.out.println("$" + bet.getAmount() + " on " + bet.getBetType());
+                }
+            }
+            System.out.println("============================");
+        }
+    }
+
+    private void tableLimits() {
+        System.out.println("===Table Minimum and Maximum bets===");
+        System.out.println("Minimum bet outside $10");
+        System.out.println("Aggregate Minimun bet inside $10");
+        System.out.println("Minimum chip value $1");
+        System.out.println("-Maximums");
+        System.out.println("$5000 Even Money");
+        System.out.println("$2500 2 to 1");
+        System.out.println("$200 Any way inside");
+        System.out.println("====================================");
+    }
+
+        public double getCurrentBalance() {
+        return playerCurrentMoneyAmount;
+    }
+
+    // Implement the required interface methods:
+    
+    @Override
+    public boolean add(Player player) {
+        this.currentPlayer = player;
+        // Use getBalance() instead of getAccountBalance()
+        this.playerCurrentMoneyAmount = player.getAccount().getBalance();
+        return true;
+    }
+
+    @Override
+    public boolean remove(Player player) {
+        this.currentPlayer = null;
+        return true;
+    }
+
+    @Override
+    public void play() {
+        // Your existing playGame() logic
+        System.out.println("Welcome to Roulette!");
+        
+        while (playerCurrentMoneyAmount >= 10.0) {
+            System.out.println("Your Money: $" + playerCurrentMoneyAmount);
+            playRound();
+            
+            System.out.println("Try your luck again? (y/n)");
+            String answer = scanner.next();
+            
+            if (answer.equals("n") || answer.equals("no")) {
+                break;
+            }
+        }
+        
+        // Update player's account when done - use withdraw/deposit instead of setBalance
+        if (currentPlayer != null) {
+            updatePlayerBalance();
+        }
+    }
+
+    @Override
+    public void run() {
+        play();
+    }
+
+    @Override
+    public boolean isGamblingGame() {
+        return true;
+    }
+
+    @Override
+    public String getGameName() {
+        return "Roulette";
+    }
+
+    @Override
+    public int getMinimumBet() {
+        return 10;  // Match your table limits
+    }
+
+    @Override
+    public int getMaximumBet() {
+        return 5000;  // Match your table limits
+    }
+
+    // Helper method to update the player's account balance
+    private void updatePlayerBalance() {
+        double originalBalance = currentPlayer.getAccount().getBalance();
+        double difference = playerCurrentMoneyAmount - originalBalance;
+        
+        if (difference > 0) {
+            // Player won money - deposit the winnings
+            currentPlayer.getAccount().deposit(difference);
+        } else if (difference < 0) {
+            // Player lost money - withdraw the losses
+            currentPlayer.getAccount().withdraw(Math.abs(difference));
+        }
+        // If difference is 0, no change needed
+    }
+}

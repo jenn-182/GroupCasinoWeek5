@@ -30,6 +30,23 @@ public class RouletteBet {
 
     }
 
+    public double getAmount() {
+        return amountBet;
+    }
+
+    public int getNumberBet() {
+        return numberBet;
+    }
+
+    public double getBetAmount() {
+        return amountBet;
+    }
+
+    public String getBetType() {
+        return betType;
+    }
+    
+
     public boolean checkWin(RouletteNumber winningNumber) {
         int num = winningNumber.getNumber();
 
@@ -133,5 +150,7 @@ public class RouletteBet {
             return 0.0;
         }
     }
+
+
 
 }
