@@ -73,13 +73,13 @@ public class RouletteGame {
             }
 
             if (amountBet > playerCurrentMoneyAmount) {
-                System.out.println("Not enough money! You have $" + playerCurrentMoneyAmount + " but need $" + amountBet);
+                System.out
+                        .println("Not enough money! You have $" + playerCurrentMoneyAmount + " but need $" + amountBet);
                 continue;
             }
 
             currentBets.add(bet);
             System.out.println("Bet placed: $" + amountBet + " on " + betType);
-
 
         }
 
@@ -94,14 +94,27 @@ public class RouletteGame {
 
         for (RouletteBet bet : currentBets) {
             if (bet.checkWin(winner)) {
-             // Calculate payout and add to winnings
+                double payout = bet.calculatePayout();
+                totalWinnings += payout;
+                System.out.println("You won $" + payout + " on your " + bet.getBetType() + " bet!");
             } else {
-            // Add bet amount to losses
-    }
-}
+                totalLosses += bet.getBetAmount();
+                System.out.println("You lost $" + bet.getBetAmount() + " on your " + bet.getBetType() + " bet.");
+            }
+        }
 
-// Update player money
-playerCurrentMoneyAmount = playerCurrentMoneyAmount - totalLosses + totalWinnings;
+        // Update player money
+        playerCurrentMoneyAmount = playerCurrentMoneyAmount - totalLosses + totalWinnings;
+
+        if (totalWinnings > totalLosses) {
+            System.out.println("Great round! You won $" + (totalWinnings - totalLosses) + " total!");
+        } else if (totalLosses > totalWinnings) {
+            System.out.println("Tough luck! You lost $" + (totalLosses - totalWinnings) + " total.");
+        } else {
+            System.out.println("You broke even this round!");
+        }
+
+        System.out.println("Your Money: $" + playerCurrentMoneyAmount);
 
     }
 
@@ -126,5 +139,9 @@ playerCurrentMoneyAmount = playerCurrentMoneyAmount - totalLosses + totalWinning
         System.out.println("$2500 2 to 1");
         System.out.println("$200 Any way inside");
         System.out.println("====================================");
+    }
+
+        public double getCurrentBalance() {
+        return playerCurrentMoneyAmount;
     }
 }
