@@ -1,25 +1,29 @@
 package com.github.zipcodewilmington.casino.games.Craps;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
+import com.github.zipcodewilmington.casino.GameInterface;
 import com.github.zipcodewilmington.casino.Player;
 import com.github.zipcodewilmington.casino.games.Craps.CrapsBetting.BetType;
 
-public class Craps {
+public class Craps implements GameInterface {
 
     private final Dice dice1 = new Dice();                      // creates an instances of dice class
     private final Dice dice2 = new Dice();
     private Scanner scanner = new Scanner(System.in);           // get Input from keybaord
     private final CrapsBetting betting = new CrapsBetting(); // handles all betting logic
+    private List<Player> players = new ArrayList<>();       // list used to track players
 
     public void play(List<Player> players) {
         System.out.println("Welcome to Craps!!!");
 
         Player shooter = chooseRandomShooter(players);          // selects shooter 
-       
+
         for (Player player : players) {                         // loops through hasmap
-             BetType betType;                        
+            BetType betType;
 
             if (player.equals(shooter)) {                       // if player is shooter sets as pass 
                 betType = CrapsBetting.BetType.PASS_LINE;
@@ -31,7 +35,6 @@ public class Craps {
             betting.placeBet(player, betType, betAmount);
 
         }
-
         // first roll 
         int roll1 = dice1.roll();
         int roll2 = dice2.roll();
@@ -55,11 +58,13 @@ public class Craps {
                 break;
 
         }
-        
+
     }
 
+    
+// other methods and functions
     // point base game
-    private void playPointPhase(List<Player> players,int point) {
+    private void playPointPhase(List<Player> players, int point) {
         while (true) {
             int roll1 = dice1.roll();
             int roll2 = dice2.roll();
@@ -68,7 +73,7 @@ public class Craps {
 
             if (total == point) {
                 System.out.println("Point hit! Pass line wins!");
-                betting.payOut(true); 
+                betting.payOut(true);
                 break;
             } else if (total == 7) {
                 System.out.println("Seven out! Don't pass wins!");
@@ -87,7 +92,7 @@ public class Craps {
             betType = scanner.nextLine().trim().toLowerCase();
         }
 
-       return betType.startsWith("pass") ? CrapsBetting.BetType.PASS_LINE : CrapsBetting.BetType.DONT_PASS_LINE;
+        return betType.startsWith("pass") ? CrapsBetting.BetType.PASS_LINE : CrapsBetting.BetType.DONT_PASS_LINE;
     }
 
     // set a random player as the shooter for a round of game
@@ -120,8 +125,8 @@ public class Craps {
         }
     }
 
-        // Betting Amount
-       private double askBetAmount(Player player) {
+    // Betting Amount
+    private double askBetAmount(Player player) {
         System.out.println(player.getUsername() + ", enter your bet amount: ");
         while (true) {
             try {
@@ -129,13 +134,62 @@ public class Craps {
                 if (amount > 0 && amount <= player.getAccount().getBalance()) {
                     return amount;
                 } else {
-                    System.out.println("Invalid amount. Enter a positive number up to your balance (" 
-                        + player.getAccount().getBalance() + "): ");
+                    System.out.println("Invalid amount. Enter a positive number up to your balance ("
+                            + player.getAccount().getBalance() + "): ");
                 }
             } catch (NumberFormatException e) {
                 System.out.println("Invalid number. Please enter a valid bet amount: ");
             }
         }
+    }
+    // interface methods
+    // game name
+    @Override
+    public String getGameName() {
+        return "Craps";
+    }
+// check if gambling game
+
+    @Override
+    public boolean isGamblingGame() {
+        return true;
+    }
+// set minimum bet
+
+    @Override
+    public int getMinimumBet() {
+        return 5;
+    }
+// set maximum bet
+
+    @Override
+    public int getMaximumBet() {
+        return 500;
+    }
+// add player
+
+    @Override
+    public boolean add(Player player) {
+        if (!players.contains(player)) {
+            players.add(player);
+            return true;
+        }
+        return false;
+    }
+    // return player
+
+    @Override
+    public boolean remove(Player player) {
+        return players.remove(player);
+    }
+    // play game
+       @Override
+    public void play() {
+        if (players.isEmpty()) {
+            System.out.println("No players added. Add players before starting the game.");
+            return;
+        }
+        play(players); 
     }
 
 }
