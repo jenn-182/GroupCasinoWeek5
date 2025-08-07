@@ -30,6 +30,9 @@ public class RouletteBet {
 
     }
 
+    public double getAmount() {
+        return amountBet;
+    }
 
     public int getNumberBet() {
         return numberBet;

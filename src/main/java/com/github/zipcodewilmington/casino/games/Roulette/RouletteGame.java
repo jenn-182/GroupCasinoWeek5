@@ -1,15 +1,25 @@
 package com.github.zipcodewilmington.casino.games.Roulette;
 
+import com.github.zipcodewilmington.casino.GameInterface;
+import com.github.zipcodewilmington.casino.Player;
 import java.util.Scanner;
-
 import java.util.List;
+import java.util.ArrayList;
 
-public class RouletteGame {
+public class RouletteGame implements GameInterface {
     Roulette wheel;
     double playerCurrentMoneyAmount = 1000.0;
     List<RouletteBet> currentBets;
     Scanner scanner = new Scanner(System.in);
+    private Player currentPlayer;  // Add player field
 
+    public RouletteGame() {
+        this.wheel = new Roulette();
+        this.currentBets = new ArrayList<>();
+        this.scanner = new Scanner(System.in);
+    }
+
+    // Keep your existing constructor too if needed
     public RouletteGame(Roulette wheel, double PlayerCurrentMoneyAmount, List<RouletteBet> currentBets) {
         this.wheel = wheel;
         this.playerCurrentMoneyAmount = PlayerCurrentMoneyAmount;
@@ -98,10 +108,15 @@ public class RouletteGame {
                 double payout = 0;
                 if (bet.getBetType().equals("STRAIGHT_UP")) {
                     payout = betAmount * 35;
-                } else if (bet.getBetType().equals("RED") || bet.getBetType().equals("BLACK")) {
+                } else if (bet.getBetType().equals("RED") || bet.getBetType().equals("BLACK") || bet.getBetType().equals("ODD") || bet.getBetType().equals("EVEN") || bet.getBetType().equals("HIGH") || bet.getBetType().equals("LOW")) {
                     payout = betAmount * 1;
-                } else if (bet.getBetType().equals("STRAIGHT_UP"))
-                bet.calculatePayout()
+                } else if (bet.getBetType().equals("1ST12") || bet.getBetType().equals("2ND12") || bet.getBetType().equals("3RD12") || bet.getBetType().equals("COLUMN1") || bet.getBetType().equals("COLUMN2") || bet.getBetType().equals("COLUMN3")) {
+                    payout = betAmount * 2;
+                }
+
+                totalWinnings += betAmount + payout;
+
+                
             } else {
                 totalLosses += bet.getAmount();
             }
@@ -139,5 +154,84 @@ public class RouletteGame {
 
         public double getCurrentBalance() {
         return playerCurrentMoneyAmount;
+    }
+
+    // Implement the required interface methods:
+    
+    @Override
+    public boolean add(Player player) {
+        this.currentPlayer = player;
+        // Use getBalance() instead of getAccountBalance()
+        this.playerCurrentMoneyAmount = player.getAccount().getBalance();
+        return true;
+    }
+
+    @Override
+    public boolean remove(Player player) {
+        this.currentPlayer = null;
+        return true;
+    }
+
+    @Override
+    public void play() {
+        // Your existing playGame() logic
+        System.out.println("Welcome to Roulette!");
+        
+        while (playerCurrentMoneyAmount >= 10.0) {
+            System.out.println("Your Money: $" + playerCurrentMoneyAmount);
+            playRound();
+            
+            System.out.println("Try your luck again? (y/n)");
+            String answer = scanner.next();
+            
+            if (answer.equals("n") || answer.equals("no")) {
+                break;
+            }
+        }
+        
+        // Update player's account when done - use withdraw/deposit instead of setBalance
+        if (currentPlayer != null) {
+            updatePlayerBalance();
+        }
+    }
+
+    @Override
+    public void run() {
+        play();
+    }
+
+    @Override
+    public boolean isGamblingGame() {
+        return true;
+    }
+
+    @Override
+    public String getGameName() {
+        return "Roulette";
+    }
+
+    @Override
+    public int getMinimumBet() {
+        return 10;  // Match your table limits
+    }
+
+    @Override
+    public int getMaximumBet() {
+        return 5000;  // Match your table limits
+    }
+
+    // Helper method to update the player's account balance
+    private void updatePlayerBalance() {
+        double originalBalance = currentPlayer.getAccount().getBalance();
+        double difference = playerCurrentMoneyAmount - originalBalance;
+        
+        if (difference > 0) {
+            // Player won money - deposit the winnings
+            currentPlayer.getAccount().deposit(difference);
+        } else if (difference < 0) {
+            // Player lost money - withdraw the losses
+            currentPlayer.getAccount().withdraw(Math.abs(difference));
+        }
+        // If difference is 0, no change needed
     }
 }

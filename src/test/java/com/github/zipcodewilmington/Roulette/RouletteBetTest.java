@@ -1,8 +1,11 @@
-package com.github.zipcodewilmington.casino.games.Roulette;
+package com.github.zipcodewilmington.Roulette;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.github.zipcodewilmington.casino.games.Roulette.RouletteBet;
+import com.github.zipcodewilmington.casino.games.Roulette.RouletteNumber;
 
 /**
  * Comprehensive test suite for RouletteBet class
