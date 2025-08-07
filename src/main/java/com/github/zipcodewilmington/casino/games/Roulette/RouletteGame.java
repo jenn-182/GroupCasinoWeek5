@@ -94,14 +94,23 @@ public class RouletteGame {
 
         for (RouletteBet bet : currentBets) {
             if (bet.checkWin(winner)) {
-             // Calculate payout and add to winnings
+                double betAmount = bet.getAmount();
+                double payout = 0;
+                if (bet.getBetType().equals("STRAIGHT_UP")) {
+                    payout = betAmount * 35;
+                } else if (bet.getBetType().equals("RED") || bet.getBetType().equals("BLACK")) {
+                    payout = betAmount * 1;
+                } else if (bet.getBetType().equals("STRAIGHT_UP"))
+                bet.calculatePayout()
             } else {
-            // Add bet amount to losses
-    }
-}
+                totalLosses += bet.getAmount();
+            }
+        }
 
-// Update player money
-playerCurrentMoneyAmount = playerCurrentMoneyAmount - totalLosses + totalWinnings;
+        // Update player money
+        playerCurrentMoneyAmount = playerCurrentMoneyAmount - totalLosses + totalWinnings;
+
+        
 
     }
 
