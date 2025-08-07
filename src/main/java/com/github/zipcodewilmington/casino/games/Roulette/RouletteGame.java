@@ -31,8 +31,10 @@ public class RouletteGame implements GameInterface {
 
         while (playerCurrentMoneyAmount >= 10.0) {
             System.out.println("Your Money: $" + playerCurrentMoneyAmount);
-
+            System.out.println(" ");
             playRound();
+
+            tableLimits();
 
             System.out.println("Try your luck again? (y/n)");
             String answer = scanner.next();
@@ -99,13 +101,17 @@ public class RouletteGame implements GameInterface {
 
         System.out.println("Winner: " + winner.getNumber() + " " + winner.getColor());
 
-        double totalWinnings = 0;
-        double totalLosses = 0;
+        // Option 1: Subtract all bets first, then add winnings
+        double totalBets = 0;
+        double totalPayouts = 0;
 
         for (RouletteBet bet : currentBets) {
+            totalBets += bet.getAmount();  // Every bet costs money
+
             if (bet.checkWin(winner)) {
                 double betAmount = bet.getAmount();
                 double payout = 0;
+
                 if (bet.getBetType().equals("STRAIGHT_UP")) {
                     payout = betAmount * 35;
                 } else if (bet.getBetType().equals("RED") || bet.getBetType().equals("BLACK") || bet.getBetType().equals("ODD") || bet.getBetType().equals("EVEN") || bet.getBetType().equals("HIGH") || bet.getBetType().equals("LOW")) {
@@ -114,19 +120,25 @@ public class RouletteGame implements GameInterface {
                     payout = betAmount * 2;
                 }
 
-                totalWinnings += betAmount + payout;
-
-                
+                totalPayouts += betAmount + payout;  // Original bet + winnings
+                System.out.println("✅ WIN! Your " + bet.getBetType() + " bet pays $" + (betAmount + payout));
             } else {
-                totalLosses += bet.getAmount();
+                System.out.println("❌ LOSE: Your " + bet.getBetType() + " bet lost $" + bet.getAmount());
             }
         }
 
-        // Update player money
-        playerCurrentMoneyAmount = playerCurrentMoneyAmount - totalLosses + totalWinnings;
+        // Update money: subtract all bets, add back payouts for winners
+        playerCurrentMoneyAmount = playerCurrentMoneyAmount - totalBets + totalPayouts;
 
-        
 
+        // Show round summary
+        double netResult = totalPayouts - totalBets;
+        System.out.println("=== ROUND RESULTS ===");
+        System.out.println("Total Bets: $" + totalBets);
+        System.out.println("Total Payouts: $" + totalPayouts);
+        System.out.println("Net Result: $" + netResult);
+        System.out.println("New Balance: $" + playerCurrentMoneyAmount);
+        System.out.println("====================");
     }
 
     private void showBettingMenu() {
