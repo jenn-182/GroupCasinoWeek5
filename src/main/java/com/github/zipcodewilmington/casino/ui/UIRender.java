@@ -220,7 +220,7 @@ public void displayCasinoMenuHeader(String username) {
         System.out.println(borderColor + "║" + background + welcomeColor + "                        Player:  " + username + "                              " + reset + borderColor + "║" + reset);
         System.out.println(borderColor + "║" + background + balanceColor + "                     Account Balance: $" + String.format("%.2f", balance) + "                         " + reset + borderColor + "║" + reset);
         System.out.println(borderColor + "║" + background + welcomeColor + "                     Total Games Played: " + totalGames + "                            " + reset + borderColor + "║" + reset);
-        System.out.println(borderColor + "║" + background + titleColor + "            Player Status: " + playerStatus + "           " + reset + borderColor + "║" + reset);
+        System.out.println(borderColor + "║" + background + titleColor + "                     Player Status: " + playerStatus + "           " + reset + borderColor + "║" + reset);
         System.out.println(borderColor + "╚══════════════════════════════════════════════════════════════════════╝" + reset);
         System.out.println();
         

@@ -23,25 +23,44 @@ public class CasinoAccountManager {
 
     private void createDummyAccounts() {
         // Create test accounts with different balances
-        CasinoAccount testUser1 = new CasinoAccount(100.0, "jroc182", "123");
-        CasinoAccount testUser2 = new CasinoAccount(250.50, "jasper", "456");
+        CasinoAccount testUser1 = new CasinoAccount(100.0, "jenn", "123");
+        CasinoAccount testUser2 = new CasinoAccount(250.50, "anthony", "123");
+        CasinoAccount testUser3 = new CasinoAccount(500.0, "josiah", "123");
+        CasinoAccount testUser4 = new CasinoAccount(500.0, "younis", "123");
+        CasinoAccount testUser5 = new CasinoAccount(500.0, "danish", "123");
+        CasinoAccount testUser6 = new CasinoAccount(500.0, "frank", "123");
 
-        accounts.put("jroc182", testUser1);
-        accounts.put("jasper", testUser2);
+
+        accounts.put("jenn", testUser1);
+        accounts.put("anthony", testUser2);
+        accounts.put("josiah", testUser3);
+        accounts.put("younis", testUser4);
+        accounts.put("danish", testUser5);
+        accounts.put("frank", testUser6);
 
         // Add some transaction history
-        testUser1.addTransactionEntry("Initial deposit of $100.00");
-        testUser2.addTransactionEntry("Initial deposit of $250.50");
+        testUser1.addTransactionEntry("Initial deposit of $500.00");
+        testUser2.addTransactionEntry("Initial deposit of $500.00");
         testUser2.addTransactionEntry("Won $25.00 playing Poker");
+        testUser3.addTransactionEntry("Initial deposit of $500.00");
+        testUser4.addTransactionEntry("Initial deposit of $500.00");
+        testUser5.addTransactionEntry("Initial deposit of $500.00");
+        testUser6.addTransactionEntry("Initial deposit of $500.00");
 
-        testUser2.addGameEntry("Played Poker - Won $25.00");
+
+        testUser1.addGameEntry("Played Poker - Won $25.00");
         testUser2.addGameEntry("Played Roulette - Lost $10.00");
+        testUser3.addGameEntry("Played Blackjack - Won $50.00");
+        testUser4.addGameEntry("Played Slots - Lost $30.00");
+        testUser5.addGameEntry("Played Roulette - Won $100.00");
 
         testUser2.addTransactionEntry("Deposited $50.00");
+        testUser3.addGameEntry("Played Blackjack - Lost $20.00");
+        testUser4.addGameEntry("Played Slots - Won $100.00");  
+        testUser5.addGameEntry("Played Roulette - Lost $30.00");
+        testUser6.addGameEntry("Played Blackjack - Won $50.00");
+        testUser6.addTransactionEntry("Withdrew $100.00");
 
-        System.out.println("Demo accounts created:");
-        System.out.println("Username: jroc182, Password: 123, Balance: $100.00");
-        System.out.println("Username: jasper, Password: 456, Balance: $250.50");
     }
 
     // Load all Casino Account objects
