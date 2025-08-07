@@ -3,8 +3,9 @@ package com.github.zipcodewilmington;
 import com.github.zipcodewilmington.casino.CasinoAccount;
 import com.github.zipcodewilmington.casino.CasinoAccountManager;
 import com.github.zipcodewilmington.casino.Player;
-import com.github.zipcodewilmington.casino.games.Numberguess.NumberGuessGame;
-import com.github.zipcodewilmington.casino.games.Numberguess.NumberGuessPlayer;
+import com.github.zipcodewilmington.casino.games.Poker.Poker;
+import com.github.zipcodewilmington.casino.games.numberguess.NumberGuessGame;
+import com.github.zipcodewilmington.casino.games.numberguess.NumberGuessPlayer;
 import com.github.zipcodewilmington.casino.ui.IOConsole;
 
 /**
@@ -154,6 +155,8 @@ public class Casino implements Runnable {
             console.println("Starting Poker for " + player.getUsername());
             player.getAccount().addGameEntry("Played Poker - Demo session");
             console.println("Poker session completed!");
+            Poker poker = new Poker(player);
+            poker.run();
         } catch (Exception e) {
             console.println("Error in Poker game: " + e.getMessage());
         }
