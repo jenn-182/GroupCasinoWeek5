@@ -96,7 +96,7 @@ public class IOConsole {
         boolean running = true;
         while (running) {
             flushScreen();
-            displayMainMenu();
+            uiRender.displayMainMenuHeader();
             String choice = getColoredStringInput("Please select an option: ", AnsiColor.YELLOW);
 
             switch (choice) {
@@ -122,7 +122,6 @@ public class IOConsole {
     }
 
     private void displayMainMenu() {
-        uiRender.displayWelcomeHeader();
         uiRender.displayMainMenuHeader();
     }
 
@@ -302,10 +301,9 @@ public class IOConsole {
         boolean inProfile = true;
         while (inProfile) {
             flushScreen();
-            displayGamingProfile(currentPlayer);
-        uiRender.displayGamingProfileHeader(currentPlayer.getUsername());
+            uiRender.displayGamingProfileHeader(currentPlayer);
 
-            String choice = getColoredStringInput("Select an option: ", AnsiColor.CYAN);
+            String choice = getColoredStringInput("Select an option: ", AnsiColor.YELLOW);
             switch (choice) {
                 case "1":
                     flushScreen();
@@ -409,22 +407,6 @@ public class IOConsole {
         }
 
         getStringInput("\nPress ENTER to continue...");
-    }
-
-    private void displayGamingProfile(Player currentPlayer) {
-        displayMessage("\n--- Gaming Profile ---", AnsiColor.BLUE);
-        displayMessage("Player Name: " + currentPlayer.getUsername(), AnsiColor.GREEN);
-        displayMessage("Account Balance: $" + String.format("%.2f", currentPlayer.getAccount().getBalance()),
-                AnsiColor.YELLOW);
-        
-        List<String> gameHistory = currentPlayer.getAccount().getGameHistory();
-        displayMessage("Total Games Played: " + gameHistory.size(), AnsiColor.WHITE);
-        
-        if (gameHistory.isEmpty()) {
-            displayMessage("Player Status: New Player - No games played yet", AnsiColor.CYAN);
-        } else {
-            displayMessage("Player Status: Active Gamer", AnsiColor.CYAN);
-        }
     }
 
     private void displayGameHistory(Player currentPlayer) {
