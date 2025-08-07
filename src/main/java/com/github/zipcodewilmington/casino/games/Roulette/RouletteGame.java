@@ -73,13 +73,13 @@ public class RouletteGame {
             }
 
             if (amountBet > playerCurrentMoneyAmount) {
-                System.out.println("Not enough money! You have $" + playerCurrentMoneyAmount + " but need $" + amountBet);
+                System.out
+                        .println("Not enough money! You have $" + playerCurrentMoneyAmount + " but need $" + amountBet);
                 continue;
             }
 
             currentBets.add(bet);
             System.out.println("Bet placed: $" + amountBet + " on " + betType);
-
 
         }
 
@@ -135,5 +135,9 @@ public class RouletteGame {
         System.out.println("$2500 2 to 1");
         System.out.println("$200 Any way inside");
         System.out.println("====================================");
+    }
+
+        public double getCurrentBalance() {
+        return playerCurrentMoneyAmount;
     }
 }
