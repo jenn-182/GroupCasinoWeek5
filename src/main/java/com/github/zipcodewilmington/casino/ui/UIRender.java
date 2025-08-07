@@ -1,5 +1,7 @@
 package com.github.zipcodewilmington.casino.ui;
 
+import com.github.zipcodewilmington.casino.Player;
+
 public class UIRender {
 
         String red = "\u001B[31m";
@@ -148,8 +150,8 @@ public void displayCasinoMenuHeader(String username) {
         System.out.println(borderColor + "╔══════════════════════════════════════════════════════════════════════╗" + reset);
         System.out.println(borderColor + "║" + background + titleColor + "                           GAME SELECTION                             " + reset + borderColor + "║" + reset);
         System.out.println(borderColor + "╠══════════════════════════════════════════════════════════════════════╣" + reset);
-        System.out.println(borderColor + "║" + background + welcomeColor + "                       Choose your adventure!                         " + reset + borderColor + "║" + reset);
-        System.out.println(borderColor + "║" + background + welcomeColor + "                     May the odds be in your favor                    " + reset + borderColor + "║" + reset);
+        System.out.println(borderColor + "║" + background + optionText + "                       Choose your adventure!                         " + reset + borderColor + "║" + reset);
+        System.out.println(borderColor + "║" + background + optionText + "                     May the odds be in your favor                    " + reset + borderColor + "║" + reset);
         System.out.println(borderColor + "╚══════════════════════════════════════════════════════════════════════╝" + reset);
         System.out.println();
         
@@ -194,19 +196,31 @@ public void displayCasinoMenuHeader(String username) {
         System.out.println(borderColor + "└──────────────────────────────────────────────────────────────────────┘" + reset);
     }
 
-    public void displayGamingProfileHeader(String username) {
+    public void displayGamingProfileHeader(Player currentPlayer) {
+        flushScreen();
         String borderColor = "\u001B[36m";     // Cyan borders (profile theme)
         String titleColor = "\u001B[93m";      // Gold title
         String welcomeColor = "\u001B[97m";    // White welcome text
         String optionNumbers = "\u001B[91m";   // Bright red numbers
         String optionText = "\u001B[97m";      // White option text
         String background = "\u001B[40m";      // Black background
+        String balanceColor = "\u001B[33m";    // Yellow for balance
+        String statusColor = "\u001B[96m";     // Cyan for status
+        
+        // Profile Information
+        String username = currentPlayer.getUsername();
+        double balance = currentPlayer.getAccount().getBalance();
+        java.util.List<String> gameHistory = currentPlayer.getAccount().getGameHistory();
+        int totalGames = gameHistory.size();
+        String playerStatus = gameHistory.isEmpty() ? "New Player - No games played yet" : "Active Gamer";
         
         System.out.println(borderColor + "╔══════════════════════════════════════════════════════════════════════╗" + reset);
         System.out.println(borderColor + "║" + background + titleColor + "                      GAMING PROFILE & HISTORY                        " + reset + borderColor + "║" + reset);
         System.out.println(borderColor + "╠══════════════════════════════════════════════════════════════════════╣" + reset);
-        System.out.println(borderColor + "║" + background + welcomeColor + "                        Player: " + username + "                               " + reset + borderColor + "║" + reset);
-        System.out.println(borderColor + "║" + background + welcomeColor + "                     Track your gaming journey!                       " + reset + borderColor + "║" + reset);
+        System.out.println(borderColor + "║" + background + welcomeColor + "                        Player:  " + username + "                              " + reset + borderColor + "║" + reset);
+        System.out.println(borderColor + "║" + background + balanceColor + "                     Account Balance: $" + String.format("%.2f", balance) + "                         " + reset + borderColor + "║" + reset);
+        System.out.println(borderColor + "║" + background + welcomeColor + "                     Total Games Played: " + totalGames + "                            " + reset + borderColor + "║" + reset);
+        System.out.println(borderColor + "║" + background + titleColor + "                     Player Status: " + playerStatus + "           " + reset + borderColor + "║" + reset);
         System.out.println(borderColor + "╚══════════════════════════════════════════════════════════════════════╝" + reset);
         System.out.println();
         
