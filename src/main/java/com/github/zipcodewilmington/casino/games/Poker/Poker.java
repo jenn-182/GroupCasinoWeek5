@@ -1,7 +1,9 @@
 package com.github.zipcodewilmington.casino.games.Poker;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import com.github.zipcodewilmington.casino.GameInterface;
 import com.github.zipcodewilmington.casino.Player;
@@ -321,7 +323,11 @@ public class Poker implements GameInterface {
 
     public void handleComputerAction(String computerName, int computerIndex) {
         System.out.println(computerName + " is thinking...");
-
+        try {
+            Thread.sleep(3500);
+        } catch (InterruptedException e) {
+            System.out.println(e);
+        }
         // Simple AI logic
         double currentBet = bettingManager.getCurrentBet();
         double computerBet = gameState.getPlayerBet(computerName);
@@ -360,6 +366,14 @@ public class Poker implements GameInterface {
 
             System.out.println(computerName + " raised to $" + newBetLevel);
         }
+
+        System.out.println("");
+
+        try {
+            Thread.sleep(1500);
+        } catch (InterruptedException e) {
+            System.out.println(e);
+        }
     }
 
     public void handleComputerActions() {
@@ -375,35 +389,68 @@ public class Poker implements GameInterface {
     }
 
     public void showdown() {
+        // Initialize here, replacing any old reference
+        handAnalyzer = new HandAnalyzer();
+
         System.out.println("\n=== SHOWDOWN ===");
 
         List<String> activePlayers = gameState.getActivePlayers();
 
+        // Default win if only one player remains
         if (activePlayers.size() == 1) {
-            System.out.println(activePlayers.get(0) + " wins by default!");
-            // Award pot to winner
-            if (activePlayers.get(0).equals(player.getUsername())) {
+            String winner = activePlayers.get(0);
+            System.out.println(winner + " wins by default!");
+            if (winner.equals(player.getUsername())) {
                 player.getAccount().deposit(gameState.getPot());
             }
             return;
         }
 
-        // Show hands of active players
+        Map<String, HandAnalyzer.HandValue> playerHandValues = new HashMap<>();
+
+        // Human player
         if (gameState.isPlayerActive(player.getUsername())) {
             System.out.print(player.getUsername() + ": ");
             playerHand.printHand();
+            playerHandValues.put(player.getUsername(), handAnalyzer.evaluate(playerHand, communityCards));
         }
 
+        // Computer players
         for (int i = 0; i < computers.size(); i++) {
             String computerName = computers.get(i);
             if (gameState.isPlayerActive(computerName)) {
                 System.out.print(computerName + ": ");
                 computerHands.get(i).printHand();
+                playerHandValues.put(computerName, handAnalyzer.evaluate(computerHands.get(i), communityCards));
             }
         }
 
-        System.out.println("Winner determination coming soon...");
-        // TODO: Use HandAnalyzer to determine winner
+        // Determine winner(s)
+        String bestPlayer = null;
+        HandAnalyzer.HandValue bestValue = null;
+        List<String> winners = new ArrayList<>();
+
+        for (Map.Entry<String, HandAnalyzer.HandValue> entry : playerHandValues.entrySet()) {
+            if (bestValue == null || entry.getValue().compareTo(bestValue) > 0) {
+                bestValue = entry.getValue();
+                bestPlayer = entry.getKey();
+                winners.clear();
+                winners.add(bestPlayer);
+            } else if (entry.getValue().compareTo(bestValue) == 0) {
+                winners.add(entry.getKey()); // tie
+            }
+        }
+
+        // Announce results
+        if (winners.size() == 1) {
+            System.out.println("\nWinner: " + winners.get(0));
+            if (winners.get(0).equals(player.getUsername())) {
+                player.getAccount().deposit(gameState.getPot());
+            }
+        } else {
+            System.out.println("\nIt's a tie between: " + String.join(", ", winners));
+            // Pot split logic could go here
+        }
     }
 
     public void displayGameState() {
@@ -413,7 +460,7 @@ public class Poker implements GameInterface {
         if (!communityCards.isEmpty()) {
             System.out.print("Community Cards:" + AnsiColor.AUTO.getColor());
             for (Card card : communityCards) {
-                System.out.print(" | "+card + " | ");
+                System.out.print(" | " + card + " | ");
             }
             System.out.println();
         }
