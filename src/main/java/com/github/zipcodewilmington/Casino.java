@@ -222,7 +222,7 @@ public class Casino implements Runnable {
    public void playTriviaGame(Player firstPlayer) {
     try {
         console.println("Starting Trivia for " + firstPlayer.getUsername());
-        firstPlayer.getAccount().addGameEntry("Playing Trivia - Demo session");
+        firstPlayer.getAccount().addGameEntry("Playing Trivia - Session started");
 
         Trivia triviaGame = new Trivia(console); // Pass console to Trivia
         triviaGame.launch(firstPlayer);
