@@ -137,12 +137,12 @@ public class RouletteGame implements GameInterface {
             
             // Only proceed if we have bets
             if (currentBets.isEmpty()) {
-                System.out.println("No bets placed. 🤷‍♂️");
+                System.out.println("No bets placed.");
                 return;
             }
 
             // Spin the wheel
-            System.out.println("\n 🎲 Spinning the wheel...");
+            System.out.println("\n Spinning the wheel...");
             Thread.sleep(1000); // Dramatic pause
             
             RouletteNumber winner = wheel.spin();
@@ -152,7 +152,7 @@ public class RouletteGame implements GameInterface {
                 return;
             }
             
-            System.out.println("🎯 Winner: " + (winner.getNumber() == 37 ? "00" : winner.getNumber()) + " " + winner.getColor());
+            System.out.println("Winner: " + (winner.getNumber() == 37 ? "00" : winner.getNumber()) + " " + winner.getColor());
             System.out.println();
             
             // Calculate and show results
@@ -763,7 +763,7 @@ public class RouletteGame implements GameInterface {
             return;
         }
         
-        System.out.println("🎯 WINNER: " + (winner.getNumber() == 37 ? "00" : winner.getNumber()) + " " + winner.getColor());
+        System.out.println(" WINNER: " + (winner.getNumber() == 37 ? "00" : winner.getNumber()) + " " + winner.getColor());
         System.out.println();
         System.out.println(" RESULTS FOR ALL PLAYERS:");
         System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -778,12 +778,12 @@ public class RouletteGame implements GameInterface {
         List<RouletteBet> bets = playerBets.get(player);
         
         if (bets.isEmpty()) {
-            System.out.println("👤 " + player.getUsername() + ": No bets placed");
+            System.out.println( player.getUsername() + ": No bets placed");
             return;
         }
         
         System.out.println();
-        System.out.println("👤 " + player.getUsername().toUpperCase() + ":");
+        System.out.println( player.getUsername().toUpperCase() + ":");
         
         double totalBets = 0;
         double totalPayouts = 0;
@@ -846,7 +846,7 @@ public class RouletteGame implements GameInterface {
         
         for (int i = 0; i < activePlayers.size(); i++) {
             Player player = activePlayers.get(i);
-            String medal = i == 0 ? "🥇" : i == 1 ? "🥈" : i == 2 ? "🥉" : "👤";
+            String medal = i == 0 ? "Gold" : i == 1 ? "Silver" : i == 2 ? "Bronze" : "👤";
             
             System.out.println(medal + " " + player.getUsername() + ": $" + 
                 String.format("%.2f", player.getAccount().getBalance()));
