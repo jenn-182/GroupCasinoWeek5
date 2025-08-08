@@ -1,5 +1,7 @@
 package com.github.zipcodewilmington.casino.games.Poker;
 
+import com.github.zipcodewilmington.casino.ui.AnsiColor;
+
 public class Card {
     private String suit;
     private String rank;
@@ -22,8 +24,9 @@ public class Card {
     public int getValue() {
         return value;
     }
+
     @Override
-    public String toString(){
-        return rank+suit;
+    public String toString() {
+        return rank + AnsiColor.YELLOW.getColor() + suit + AnsiColor.AUTO.getColor();
     }
 }

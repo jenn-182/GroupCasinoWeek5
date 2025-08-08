@@ -22,4 +22,8 @@ public class Hand {
         }
         System.out.println("");
     }
+
+    public Stack<Card> gethand(){
+        return hand;
+    }
 }
