@@ -456,7 +456,7 @@ public class Casino implements Runnable {
                 System.out.println("Thanks for playing Craps!");
             }
         }
-
+    }
 
 
 public void playTriviaGame(Player loggedInPlayer) {
@@ -538,7 +538,7 @@ public void playTriviaGame(Player loggedInPlayer) {
         console.println("Error in Trivia game: " + e.getMessage());
     }
 
-  
+}
 
 
 
