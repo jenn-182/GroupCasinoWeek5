@@ -121,31 +121,33 @@ public class IOConsole {
         input.close();
     }
 
-    private void displayMainMenu() {
-        uiRender.displayMainMenuHeader();
-    }
-
     private void handleRegistration() {
         flushScreen();
-        displayMessage("\n--- Registration ---", AnsiColor.BLUE);
-        String username = getStringInput("Enter desired username: ");
+        uiRender.displayRegistrationHeader();
+        System.out.print("Enter desired username: ");
+        String username = input.nextLine();
         System.out.println();
-        String password = getStringInput("Enter desired password: ");
-        System.out.println();
+        System.out.print("Enter desired Password: ");
+        String password = input.nextLine();
 
         if (casino != null && casino.getAccountManager() != null) {
             CasinoAccount newAccount = casino.getAccountManager().createAccount(username, password);
             if (newAccount != null) {
-                displayMessage("Registration successful! Welcome " + username
-                        + "! Your account starts with a 0.0 balance. Add some money to play!", AnsiColor.GREEN);
+                flushScreen();
+                uiRender.displayConfirmationHeader(
+                        "REGISTRATION CONFIRMATION",
+                        "Account created! Welcome, " + username + "!",
+                        UIRender.LOGIN_COLOR);
                 double initialDepositAmount = Double.parseDouble(getColoredStringInput(
                         "Would you like to make an initial deposit? Enter amount (e.g., 50.00) or 0 to skip: ",
-                        AnsiColor.CYAN));
+                        AnsiColor.GREEN));
                 if (initialDepositAmount > 0) {
                     newAccount.deposit(initialDepositAmount);
-                    displayMessage("Your current balance is: $" + String.format("%.2f", newAccount.getBalance())
-                            + " . You can now log in!", AnsiColor.YELLOW);
-                    newAccount.addTransactionEntry("Initial deposit of $" + String.format("%.2f", initialDepositAmount));
+                    uiRender.displayConfirmationHeader(
+                            "DEPOSIT SUCCESSFUL",
+                            "Successfully deposited $" + String.format("%.2f", initialDepositAmount) +
+                                    ". New Balance: $" + String.format("%.2f", newAccount.getBalance()),
+                            UIRender.MONEY_COLOR);
                 }
             } else {
                 displayMessage("Registration failed. Username may already exist.", AnsiColor.RED);
@@ -157,18 +159,22 @@ public class IOConsole {
 
     private void handleLogin() {
         flushScreen();
-        displayMessage("\n--- Login ---", AnsiColor.BLUE);
-        String username = getStringInput("Enter username: ");
+        uiRender.displaySimpleHeader("Login", UIRender.LOGIN_COLOR);
+        System.out.print("Username: ");
+        String username = input.nextLine();
         System.out.println();
-        String password = getStringInput("Enter password: ");
-        System.out.println();
+        System.out.print("Password: ");
+        String password = input.nextLine();
 
         if (casino != null && casino.getAccountManager() != null) {
             CasinoAccount account = casino.getAccountManager().getAccount(username, password);
             if (account != null) {
                 flushScreen();
                 casino.setCurrentAccount(account);
-                displayMessage("\nLogin successful! Welcome back " + username + "!", AnsiColor.GREEN);
+                uiRender.displayConfirmationHeader(
+                        "LOGIN CONFIRMATION",
+                        "Login successful! Welcome back, " + username + "!",
+                        UIRender.LOGIN_COLOR);
                 getStringInput("\nPress ENTER to continue to main menu...");
                 flushScreen();
                 handleCasinoMenu();
@@ -278,7 +284,7 @@ public class IOConsole {
                     break;
                 case "2":
                     flushScreen();
-                    handleWithdrawal(currentPlayer);
+                    handleWithdraw(currentPlayer);
                     break;
                 case "3":
                     flushScreen();
@@ -327,23 +333,27 @@ public class IOConsole {
     }
 
     private void handleDeposit(Player currentPlayer) {
-        displayMessage("\n--- Deposit Money ---", AnsiColor.BLUE);
-        displayMessage("Current Balance: $" + String.format("%.2f", currentPlayer.getAccount().getBalance()),
-                AnsiColor.YELLOW);
-        
+        flushScreen();
+        String info = "Current Balance: $" + String.format("%.2f", currentPlayer.getAccount().getBalance());
+        uiRender.displayInfoHeader("Deposit Funds", info, UIRender.MONEY_COLOR);
+
         try {
             double depositAmount = getDoubleInput("Enter amount to deposit (or 0 to cancel): ");
-            
+
             if (depositAmount == 0) {
                 displayMessage("Deposit cancelled.", AnsiColor.YELLOW);
                 return;
             }
-            
+
             if (depositAmount > 0) {
                 if (casino.processDeposit(currentPlayer, depositAmount)) {
-                    displayMessage("Deposit successful!", AnsiColor.GREEN);
-                    displayMessage("New Balance: $" + String.format("%.2f", currentPlayer.getAccount().getBalance()),
-                            AnsiColor.YELLOW);
+                    flushScreen();
+                    uiRender.displayInfoHeader(
+                            "DEPOSIT SUCCESSFUL",
+                            "Successfully deposited $" + String.format("%.2f", depositAmount)
+                                    + ". New Balance: $"
+                                    + String.format("%.2f", currentPlayer.getAccount().getBalance()),
+                            UIRender.MONEY_COLOR);
                 } else {
                     displayMessage("Deposit failed. Please try again.", AnsiColor.RED);
                 }
@@ -353,34 +363,37 @@ public class IOConsole {
         } catch (Exception e) {
             displayMessage("Error processing deposit: " + e.getMessage(), AnsiColor.RED);
         }
-        
+
         getStringInput("\nPress ENTER to continue...");
     }
 
-    private void handleWithdrawal(Player currentPlayer) {
-        displayMessage("\n--- Withdraw Money ---", AnsiColor.BLUE);
-        double currentBalance = currentPlayer.getAccount().getBalance();
-        displayMessage("Current Balance: $" + String.format("%.2f", currentBalance), AnsiColor.YELLOW);
-        
-        if (currentBalance <= 0) {
+    private void handleWithdraw(Player currentPlayer) {
+        flushScreen();
+        String info = "Current Balance: $" + String.format("%.2f", currentPlayer.getAccount().getBalance());
+        uiRender.displayInfoHeader("Withdraw Funds", info, UIRender.MONEY_COLOR);
+
+        if (currentPlayer.getAccount().getBalance() <= 0) {
             displayMessage("Cannot withdraw: Insufficient funds.", AnsiColor.RED);
             getStringInput("\nPress ENTER to continue...");
             return;
         }
-        
+
         try {
             double withdrawalAmount = getDoubleInput("Enter amount to withdraw (or 0 to cancel): ");
-            
+
             if (withdrawalAmount == 0) {
                 displayMessage("Withdrawal cancelled.", AnsiColor.YELLOW);
                 return;
             }
-            
+
             if (withdrawalAmount > 0) {
                 if (casino.processWithdrawal(currentPlayer, withdrawalAmount)) {
-                    displayMessage("Withdrawal successful!", AnsiColor.GREEN);
-                    displayMessage("New Balance: $" + String.format("%.2f", currentPlayer.getAccount().getBalance()),
-                            AnsiColor.YELLOW);
+                    flushScreen();
+                    uiRender.displayConfirmationHeader(
+                            "WITHDRAW SUCCESSFUL",
+                            "Successfully withdrew $" + String.format("%.2f", withdrawalAmount) +
+                                    ". New Balance: $" + String.format("%.2f", currentPlayer.getAccount().getBalance()),
+                            UIRender.MONEY_COLOR);
                 } else {
                     displayMessage("Withdrawal failed. Check your balance and try again.", AnsiColor.RED);
                 }
@@ -390,83 +403,121 @@ public class IOConsole {
         } catch (Exception e) {
             displayMessage("Error processing withdrawal: " + e.getMessage(), AnsiColor.RED);
         }
-        
+
         getStringInput("\nPress ENTER to continue...");
     }
 
     private void displayTransactionHistory(Player currentPlayer) {
-        displayMessage("\n--- Transaction History ---", AnsiColor.BLUE);
+        flushScreen();
         List<String> transactionHistory = currentPlayer.getAccount().getTransactionHistory();
 
         if (transactionHistory.isEmpty()) {
-            displayMessage("No banking transactions found.", AnsiColor.YELLOW);
+            uiRender.displaySimpleHeader("TRANSACTION HISTORY", UIRender.HISTORY_COLOR);
+            uiRender.displayEmptyMessage("No banking transactions found.", UIRender.HISTORY_COLOR);
         } else {
-            for (String entry : transactionHistory) {
-                displayMessage("- " + entry, AnsiColor.WHITE);
+            uiRender.displayListHeader("TRANSACTION HISTORY", UIRender.HISTORY_COLOR);
+            for (String transaction : transactionHistory) {
+                uiRender.displayListItem(transaction, UIRender.HISTORY_COLOR);
             }
+            uiRender.displayListFooter(UIRender.HISTORY_COLOR);
         }
 
         getStringInput("\nPress ENTER to continue...");
     }
 
     private void displayGameHistory(Player currentPlayer) {
-        displayMessage("\n--- Game History for " + currentPlayer.getUsername() + " ---", AnsiColor.BLUE);
+        flushScreen();
         List<String> gameHistory = currentPlayer.getAccount().getGameHistory();
-        
+
         if (gameHistory.isEmpty()) {
-            displayMessage("No game history available.", AnsiColor.YELLOW);
-            displayMessage("Start playing games to build your gaming history!", AnsiColor.CYAN);
+            uiRender.displaySimpleHeader("GAME HISTORY", UIRender.HISTORY_COLOR);
+            uiRender.displayEmptyMessage("No games played yet", UIRender.HISTORY_COLOR);
         } else {
-            displayMessage("Total games played: " + gameHistory.size(), AnsiColor.GREEN);
-            displayMessage("", AnsiColor.WHITE);
-            for (String entry : gameHistory) {
-                displayMessage("- " + entry, AnsiColor.WHITE);
+            uiRender.displayListHeader("GAME HISTORY", UIRender.HISTORY_COLOR);
+            for (int i = 0; i < gameHistory.size(); i++) {
+                String item = String.format("[%02d] %s", i + 1, gameHistory.get(i));
+                uiRender.displayListItem(item, UIRender.HISTORY_COLOR);
             }
+            uiRender.displayListFooter(UIRender.HISTORY_COLOR);
         }
-        
+
         getStringInput("\nPress ENTER to continue...");
     }
 
     private void displayGamingStatistics(Player currentPlayer) {
-        displayMessage("\n--- Gaming Statistics ---", AnsiColor.BLUE);
-        displayMessage("Player: " + currentPlayer.getUsername(), AnsiColor.GREEN);
-        
+        flushScreen();
+
         List<String> gameHistory = currentPlayer.getAccount().getGameHistory();
-        displayMessage("Total Games Played: " + gameHistory.size(), AnsiColor.WHITE);
-        
+
         int rouletteGames = 0, pokerGames = 0, crapsGames = 0, triviaGames = 0, numberGuessGames = 0;
-        
+
         for (String entry : gameHistory) {
             String lowerEntry = entry.toLowerCase();
-            if (lowerEntry.contains("roulette")) rouletteGames++;
-            else if (lowerEntry.contains("poker")) pokerGames++;
-            else if (lowerEntry.contains("craps")) crapsGames++;
-            else if (lowerEntry.contains("trivia")) triviaGames++;
-            else if (lowerEntry.contains("number")) numberGuessGames++;
+            if (lowerEntry.contains("roulette"))
+                rouletteGames++;
+            else if (lowerEntry.contains("poker"))
+                pokerGames++;
+            else if (lowerEntry.contains("craps"))
+                crapsGames++;
+            else if (lowerEntry.contains("trivia"))
+                triviaGames++;
+            else if (lowerEntry.contains("number"))
+                numberGuessGames++;
         }
-        
-        displayMessage("\n--- Games Breakdown ---", AnsiColor.CYAN);
-        displayMessage("Roulette Games: " + rouletteGames, AnsiColor.WHITE);
-        displayMessage("Poker Games: " + pokerGames, AnsiColor.WHITE);
-        displayMessage("Craps Games: " + crapsGames, AnsiColor.WHITE);
-        displayMessage("Trivia Games: " + triviaGames, AnsiColor.WHITE);
-        displayMessage("Number Guess Games: " + numberGuessGames, AnsiColor.WHITE);
-        
-        String favoriteGame = "None yet";
-        int maxGames = Math.max(rouletteGames, Math.max(pokerGames, Math.max(crapsGames, Math.max(triviaGames, numberGuessGames))));
-        if (maxGames > 0) {
-            if (rouletteGames == maxGames) favoriteGame = "Roulette";
-            else if (pokerGames == maxGames) favoriteGame = "Poker";
-            else if (crapsGames == maxGames) favoriteGame = "Craps";
-            else if (triviaGames == maxGames) favoriteGame = "Trivia";
-            else if (numberGuessGames == maxGames) favoriteGame = "Number Guess";
+
+        // Player Overview
+        String[] playerStats = {
+                "Player: " + currentPlayer.getUsername(),
+                "Total Games Played: " + gameHistory.size(),
+                "Total Wins: " + currentPlayer.getAccount().getTotalWins(),
+                "Total Losses: " + currentPlayer.getAccount().getTotalLosses(),
+        };
+        uiRender.displayDataHeader("PLAYER OVERVIEW", playerStats, UIRender.HISTORY_COLOR);
+
+        // Games Breakdown Section
+        if (gameHistory.size() > 0) {
+            String[] gamesBreakdown = {
+                    "Roulette: " + rouletteGames + " games",
+                    "Poker: " + pokerGames + " games",
+                    "Craps: " + crapsGames + " games",
+                    "Trivia: " + triviaGames + " games",
+                    "Number Guess: " + numberGuessGames + " games"
+            };
+            uiRender.displayDataHeader("GAMES BREAKDOWN", gamesBreakdown, UIRender.HISTORY_COLOR);
+
+            String favoriteGame = determineFavoriteGame(rouletteGames, pokerGames, crapsGames, triviaGames,
+                    numberGuessGames);
+            String[] favoriteStats = {
+                    "Most Played Game: " + favoriteGame
+            };
+            uiRender.displayDataHeader("PREFERENCES", favoriteStats, UIRender.HISTORY_COLOR);
         }
-        
-        displayMessage("\nFavorite Game: " + favoriteGame, AnsiColor.YELLOW);
-        displayMessage("Current Balance: $" + String.format("%.2f", currentPlayer.getAccount().getBalance()),
-                AnsiColor.YELLOW);
-        
+
         getStringInput("\nPress ENTER to continue...");
+    }
+
+    private String determineFavoriteGame(int rouletteGames, int pokerGames, int crapsGames, int triviaGames,
+            int numberGuessGames) {
+        int maxGames = Math.max(rouletteGames,
+                Math.max(pokerGames, Math.max(crapsGames, Math.max(triviaGames, numberGuessGames))));
+
+        if (maxGames == 0) {
+            return "None";
+        }
+
+        if (rouletteGames == maxGames) {
+            return "Roulette";
+        } else if (pokerGames == maxGames) {
+            return "Poker";
+        } else if (crapsGames == maxGames) {
+            return "Craps";
+        } else if (triviaGames == maxGames) {
+            return "Trivia";
+        } else if (numberGuessGames == maxGames) {
+            return "Number Guess";
+        }
+
+        return "None";
     }
 
     public Scanner getScanner() {

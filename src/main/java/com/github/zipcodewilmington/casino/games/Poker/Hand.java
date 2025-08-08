@@ -20,5 +20,10 @@ public class Hand {
         for (Card card : hand) {
             System.out.print(card+" | ");
         }
+        System.out.println("");
+    }
+
+    public Stack<Card> gethand(){
+        return hand;
     }
 }
