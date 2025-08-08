@@ -134,14 +134,20 @@ public class IOConsole {
             CasinoAccount newAccount = casino.getAccountManager().createAccount(username, password);
             if (newAccount != null) {
                 flushScreen();
-                uiRender.displayRegistrationConfirmationHeader(username);
+                uiRender.displayConfirmationHeader(
+                        "REGISTRATION CONFIRMATION",
+                        "Account created! Welcome, " + username + "!",
+                        UIRender.LOGIN_COLOR);
                 double initialDepositAmount = Double.parseDouble(getColoredStringInput(
                         "Would you like to make an initial deposit? Enter amount (e.g., 50.00) or 0 to skip: ",
                         AnsiColor.GREEN));
                 if (initialDepositAmount > 0) {
                     newAccount.deposit(initialDepositAmount);
-                    displayMessage("Your current balance is: $" + String.format("%.2f", newAccount.getBalance())
-                            + " . You can now log in!", AnsiColor.GREEN);
+                    uiRender.displayConfirmationHeader(
+                            "DEPOSIT SUCCESSFUL",
+                            "Successfully deposited $" + String.format("%.2f", initialDepositAmount) +
+                                    ". New Balance: $" + String.format("%.2f", newAccount.getBalance()),
+                            UIRender.MONEY_COLOR);
                     newAccount
                             .addTransactionEntry("Initial deposit of $" + String.format("%.2f", initialDepositAmount));
                 }
@@ -167,7 +173,10 @@ public class IOConsole {
             if (account != null) {
                 flushScreen();
                 casino.setCurrentAccount(account);
-                uiRender.displayLoginConfirmationHeader(username);
+                uiRender.displayConfirmationHeader(
+                        "LOGIN CONFIRMATION",
+                        "Login successful! Welcome back, " + username + "!",
+                        UIRender.LOGIN_COLOR);
                 getStringInput("\nPress ENTER to continue to main menu...");
                 flushScreen();
                 handleCasinoMenu();
@@ -381,9 +390,12 @@ public class IOConsole {
 
             if (withdrawalAmount > 0) {
                 if (casino.processWithdrawal(currentPlayer, withdrawalAmount)) {
-                    displayMessage("Withdrawal successful!", AnsiColor.GREEN);
-                    displayMessage("New Balance: $" + String.format("%.2f", currentPlayer.getAccount().getBalance()),
-                            AnsiColor.YELLOW);
+                    flushScreen();
+                    uiRender.displayConfirmationHeader(
+                            "WITHDRAW SUCCESSFUL",
+                            "Successfully withdrew $" + String.format("%.2f", withdrawalAmount) +
+                                    ". New Balance: $" + String.format("%.2f", currentPlayer.getAccount().getBalance()),
+                            UIRender.MONEY_COLOR);
                 } else {
                     displayMessage("Withdrawal failed. Check your balance and try again.", AnsiColor.RED);
                 }
