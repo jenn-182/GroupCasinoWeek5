@@ -1,8 +1,15 @@
 package com.github.zipcodewilmington;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+
 import com.github.zipcodewilmington.casino.CasinoAccount;
 import com.github.zipcodewilmington.casino.CasinoAccountManager;
 import com.github.zipcodewilmington.casino.Player;
+import com.github.zipcodewilmington.casino.games.Craps.Craps;
 import com.github.zipcodewilmington.casino.games.Poker.Poker;
 import com.github.zipcodewilmington.casino.games.TriviaGame.Trivia;
 import com.github.zipcodewilmington.casino.games.numberguess.NumberGuessGame;
@@ -18,6 +25,7 @@ public class Casino implements Runnable {
     private final CasinoAccountManager accountManager;
     private CasinoAccount currentAccount;
     private boolean isRunning;
+    private Scanner scanner = new Scanner(System.in);
 
     // Constructor
     public Casino() {
@@ -209,14 +217,59 @@ public class Casino implements Runnable {
         }
     }
 
-    public void playCrapsGame(Player player) {
-        try {
-            console.println("Starting Craps for " + player.getUsername());
-            player.getAccount().addGameEntry("Played Craps - Demo session");
-            console.println("Craps session completed!");
-        } catch (Exception e) {
-            console.println("Error in Craps game: " + e.getMessage());
+    public void playCrapsGame(Player loggedInPlayer) {
+        Craps craps = new Craps();
+
+        // Add the logged-in player first
+        craps.add(loggedInPlayer);
+
+        // Show all available players
+        List<CasinoAccount> allAccounts = new ArrayList<>(accountManager.loadAccounts().values());
+
+        System.out.println("Available players to join (excluding you):");
+        int idx = 1;
+        Map<Integer, Player> indexToPlayer = new HashMap<>();
+
+        for (CasinoAccount account : allAccounts) {
+            if (!account.getUsername().equals(loggedInPlayer.getUsername())) {
+                System.out.println(idx + ": " + account.getUsername());
+                indexToPlayer.put(idx, account.getPlayer());
+                idx++;
+            }
         }
+
+        System.out.println("You can add up to 4 more players to join (max 5 total).");
+        System.out.println("Enter player numbers separated by commas (or press Enter to start with just yourself):");
+
+        String input = scanner.nextLine().trim();
+        if (!input.isEmpty()) {
+            String[] selections = input.split(",");
+            for (String sel : selections) {
+                if (craps.getPlayers().size() >= 5) {
+                    System.out.println("Maximum 5 players reached.");
+                    break;
+                }
+                try {
+                    int selection = Integer.parseInt(sel.trim());
+                    Player selectedPlayer = indexToPlayer.get(selection);
+                    if (selectedPlayer != null && !craps.getPlayers().contains(selectedPlayer)) {
+                        craps.add(selectedPlayer);
+                    } else {
+                        System.out.println("Invalid or duplicate selection: " + selection);
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid input: " + sel);
+                }
+            }
+        }
+
+        System.out.println("Starting Craps with players:");
+        for (Player p : craps.getPlayers()) {
+            System.out.println("- " + p.getUsername());
+        }
+
+        // Start the game
+        craps.play();
     }
 
    public void playTriviaGame(Player firstPlayer) {

@@ -16,6 +16,7 @@ public class Craps implements GameInterface {
     private Scanner scanner = new Scanner(System.in);               // get Input from keybaord
     private final CrapsBetting betting = new CrapsBetting();        // handles all betting logic
     private List<Player> players = new ArrayList<>();               // list used to track players
+    private Player currentPlayer;
 
     public void play(List<Player> players) {
         System.out.println("Welcome to Craps!!!");
@@ -83,7 +84,7 @@ public class Craps implements GameInterface {
     }
 
     private BetType askBetType(Player player) {
-        System.out.println("player.getName()" + ", choose your bet type (pass/don't pass): ");
+        System.out.println(player.getUsername() + ", choose your bet type (pass/don't pass): ");
         String betType = scanner.nextLine().trim().toLowerCase();
 
         while (!betType.equals("pass") && !betType.equals("don't pass")) {
@@ -142,6 +143,11 @@ public class Craps implements GameInterface {
         }
     }
 
+    // get players
+    public List<Player> getPlayers() {
+    return players;
+}
+
     // interface methods
     // game name
     @Override
@@ -186,6 +192,7 @@ public class Craps implements GameInterface {
     // play game
     @Override
     public void play() {
+
         if (players.isEmpty()) {
             System.out.println("No players added. Add players before starting the game.");
             return;
@@ -198,4 +205,11 @@ public class Craps implements GameInterface {
         play();
 
     }
+    @Override
+public void launch(Player player) {
+    this.currentPlayer = player;
+    System.out.println("Welcome to Craps, " + player.getUsername() + "!");
+}
+    
+ 
 }
