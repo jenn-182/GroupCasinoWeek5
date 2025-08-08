@@ -37,6 +37,10 @@ public class Trivia implements GameInterface {
         return players.remove(player);
     }
 
+    public List<Player> getPlayers() {
+        return Collections.unmodifiableList(players);
+    }
+
     @Override
     public void play() {
         if (players.isEmpty()) {
@@ -49,6 +53,7 @@ public class Trivia implements GameInterface {
 
         if (questions.isEmpty()) {
             console.println("No questions loaded. Cannot start game.");
+            running = false;
             return;
         }
 
@@ -77,7 +82,6 @@ public class Trivia implements GameInterface {
         String selectedCategory = categories.get(catChoice - 1);
         console.println("Selected category: " + selectedCategory);
 
-        // Filter questions by selected category
         List<Question> filteredQuestions = new ArrayList<>();
         for (Question q : questions) {
             if (q.getCategory().equalsIgnoreCase(selectedCategory)) {
@@ -87,11 +91,9 @@ public class Trivia implements GameInterface {
 
         Collections.shuffle(filteredQuestions);
 
-        // Scores map for players
         Map<Player, Integer> scores = new HashMap<>();
         for (Player p : players) scores.put(p, 0);
 
-        // Ask questions, alternating players
         int totalQuestions = filteredQuestions.size();
         for (int i = 0; i < totalQuestions && running; i++) {
             Player currentPlayer = players.get(i % players.size());
@@ -133,7 +135,7 @@ public class Trivia implements GameInterface {
 
     @Override
     public boolean isGamblingGame() {
-        return false; // Trivia is non-gambling
+        return false;
     }
 
     @Override
@@ -143,12 +145,12 @@ public class Trivia implements GameInterface {
 
     @Override
     public int getMinimumBet() {
-        return 0; // no bets for trivia
+        return 0;
     }
 
     @Override
     public int getMaximumBet() {
-        return 0; // no bets for trivia
+        return 0;
     }
 
     @Override
@@ -162,11 +164,10 @@ public class Trivia implements GameInterface {
             console.println("No player provided to launch the game.");
             return;
         }
-        if (!add(player)) {
-            console.println("Failed to add player: " + player.getUsername());
-            return;
+        players.clear();
+        if (add(player)) {
+            play();
         }
-        play();
     }
 
     private void loadQuestionsFromFile(String filename) {
@@ -200,4 +201,3 @@ public class Trivia implements GameInterface {
         }
     }
 }
-
