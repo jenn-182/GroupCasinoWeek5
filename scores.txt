@@ -3,3 +3,4 @@ jroc182 | Category: Geography | Score: 2
 jroc182 | Category: Geography | Score: 2
 jroc182 | Category: Computer Science | Score: 1
 josiah | Category: Technology | Score: 1
+josiah | Category: Geography | Score: 0
