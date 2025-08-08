@@ -148,8 +148,6 @@ public class IOConsole {
                             "Successfully deposited $" + String.format("%.2f", initialDepositAmount) +
                                     ". New Balance: $" + String.format("%.2f", newAccount.getBalance()),
                             UIRender.MONEY_COLOR);
-                    newAccount
-                            .addTransactionEntry("Initial deposit of $" + String.format("%.2f", initialDepositAmount));
                 }
             } else {
                 displayMessage("Registration failed. Username may already exist.", AnsiColor.RED);
