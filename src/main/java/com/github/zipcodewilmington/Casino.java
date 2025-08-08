@@ -17,10 +17,11 @@ import com.github.zipcodewilmington.casino.games.numberguess.NumberGuessPlayer;
 import com.github.zipcodewilmington.casino.ui.IOConsole;
 
 /**
- * Created by leon on 7/21/2020.
- * Casino - Main orchestrator of the casino application
+ * Created by leon on 7/21/2020. Casino - Main orchestrator of the casino
+ * application
  */
 public class Casino implements Runnable {
+
     private final IOConsole console;
     private final CasinoAccountManager accountManager;
     private CasinoAccount currentAccount;
@@ -171,7 +172,6 @@ public class Casino implements Runnable {
                     currentBets);
 
             // This runs the COMPLETE RouletteGame with ALL original prompts:
-
             game.playGame();
 
             // Sync the game results back to the casino account
@@ -193,8 +193,8 @@ public class Casino implements Runnable {
 
             // Update final balance and add to game history
             console.println("Updated Casino Balance: $" + String.format("%.2f", player.getAccount().getBalance()));
-            player.getAccount().addGameEntry("Roulette Session - Net: " +
-                    (difference >= 0 ? "+$" + String.format("%.2f", difference)
+            player.getAccount().addGameEntry("Roulette Session - Net: "
+                    + (difference >= 0 ? "+$" + String.format("%.2f", difference)
                             : "-$" + String.format("%.2f", Math.abs(difference))));
 
             console.println("Thank you for playing Roulette! Returning to main casino floor...");
@@ -216,6 +216,7 @@ public class Casino implements Runnable {
             console.println("Error in Poker game: " + e.getMessage());
         }
     }
+// Craps Game
 
     public void playCrapsGame(Player loggedInPlayer) {
         Craps craps = new Craps();
@@ -239,40 +240,64 @@ public class Casino implements Runnable {
         }
 
         System.out.println("You can add up to 4 more players to join (max 5 total).");
-        System.out.println("Enter player numbers separated by commas (or press Enter to start with just yourself):");
+        System.out.println("Type player number to add, or type END to finish.");
 
-        String input = scanner.nextLine().trim();
-        if (!input.isEmpty()) {
-            String[] selections = input.split(",");
-            for (String sel : selections) {
-                if (craps.getPlayers().size() >= 5) {
-                    System.out.println("Maximum 5 players reached.");
-                    break;
+        while (craps.getPlayers().size() < 5) {
+            System.out.print("Enter player number or END to stop: ");
+            String input = scanner.nextLine().trim();
+
+            if (input.equalsIgnoreCase("END")) {
+                break;  // Stop asking for players
+            }
+
+            try {
+                int selection = Integer.parseInt(input);
+                Player selectedPlayer = indexToPlayer.get(selection);
+
+                if (selectedPlayer == null) {
+                    System.out.println("Invalid player number. Try again.");
+                    continue;
                 }
-                try {
-                    int selection = Integer.parseInt(sel.trim());
-                    Player selectedPlayer = indexToPlayer.get(selection);
-                    if (selectedPlayer != null && !craps.getPlayers().contains(selectedPlayer)) {
-                        craps.add(selectedPlayer);
-                    } else {
-                        System.out.println("Invalid or duplicate selection: " + selection);
-                    }
-                } catch (NumberFormatException e) {
-                    System.out.println("Invalid input: " + sel);
+
+                if (craps.getPlayers().contains(selectedPlayer)) {
+                    System.out.println("Player already added. Pick someone else.");
+                    continue;
                 }
+
+                // Ask for password
+                System.out.print("Enter password for " + selectedPlayer.getUsername() + ": ");
+                String password = scanner.nextLine();
+
+                // Verify password using CasinoAccountManager (you need access to it)
+                CasinoAccount account = accountManager.getAccount(selectedPlayer.getUsername(), password);
+
+                if (account != null) {
+                    craps.add(selectedPlayer);
+                    System.out.println(selectedPlayer.getUsername() + " added successfully.");
+                } else {
+                    System.out.println("Incorrect password. Player not added.");
+                }
+
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a valid player number or END.");
             }
         }
+    System.out.println (
 
-        System.out.println("Starting Craps with players:");
+    "Starting Craps with players:");
         for (Player p : craps.getPlayers()) {
             System.out.println("- " + p.getUsername());
         }
 
         // Start the game
-        craps.play();
-    }
+    craps.play ();
+}
 
-   public void playTriviaGame(Player firstPlayer) {
+
+
+
+
+public void playTriviaGame(Player firstPlayer) {
     try {
         console.println("Starting Trivia for " + firstPlayer.getUsername());
         firstPlayer.getAccount().addGameEntry("Playing Trivia - Demo session");
@@ -286,8 +311,6 @@ public class Casino implements Runnable {
     }
 }
 
-
-    
 
     public void playNumberGuessGame(Player player) {
         try {

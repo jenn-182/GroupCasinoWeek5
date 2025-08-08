@@ -20,6 +20,16 @@ public class Craps implements GameInterface {
 
     public void play(List<Player> players) {
         System.out.println("Welcome to Craps!!!");
+        System.out.println("\n--- How to Bet in Craps ---");
+        System.out.println("Pass Line Bet:");
+        System.out.println(" - Win if first roll is 7 or 11.");
+        System.out.println(" - Lose if first roll is 2, 3, or 12.");
+        System.out.println(" - If point is set, win if point is rolled again before 7.");
+        System.out.println("Don't Pass Line Bet:");
+        System.out.println(" - Lose if first roll is 7 or 11.");
+        System.out.println(" - Win if first roll is 2 or 3.");
+        System.out.println(" - Tie if first roll is 12.");
+        System.out.println(" - If point is set, win if 7 is rolled before point.\n");
 
         Player shooter = chooseRandomShooter(players);              // selects shooter 
 
@@ -37,6 +47,8 @@ public class Craps implements GameInterface {
 
         }
         // first roll 
+        System.out.println("Press Enter to roll the dice...");
+        scanner.nextLine();
         int roll1 = dice1.roll();
         int roll2 = dice2.roll();
         int total = roll1 + roll2;
@@ -66,6 +78,8 @@ public class Craps implements GameInterface {
     // point base game
     private void playPointPhase(List<Player> players, int point) {
         while (true) {
+            System.out.println("Press Enter to roll the dice...");
+            scanner.nextLine();
             int roll1 = dice1.roll();
             int roll2 = dice2.roll();
             int total = roll1 + roll2;
@@ -145,8 +159,8 @@ public class Craps implements GameInterface {
 
     // get players
     public List<Player> getPlayers() {
-    return players;
-}
+        return players;
+    }
 
     // interface methods
     // game name
@@ -205,11 +219,11 @@ public class Craps implements GameInterface {
         play();
 
     }
+
     @Override
-public void launch(Player player) {
-    this.currentPlayer = player;
-    System.out.println("Welcome to Craps, " + player.getUsername() + "!");
-}
-    
- 
+    public void launch(Player player) {
+        this.currentPlayer = player;
+        System.out.println("Welcome to Craps, " + player.getUsername() + "!");
+    }
+
 }
