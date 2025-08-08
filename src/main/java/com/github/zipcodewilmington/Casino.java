@@ -12,8 +12,8 @@ import com.github.zipcodewilmington.casino.Player;
 import com.github.zipcodewilmington.casino.games.Craps.Craps;
 import com.github.zipcodewilmington.casino.games.Poker.Poker;
 import com.github.zipcodewilmington.casino.games.TriviaGame.Trivia;
-import com.github.zipcodewilmington.casino.games.numberguess.NumberGuessGame;
-import com.github.zipcodewilmington.casino.games.numberguess.NumberGuessPlayer;
+//import com.github.zipcodewilmington.casino.games.numberguess.NumberGuessGame;
+//import com.github.zipcodewilmington.casino.games.numberguess.NumberGuessPlayer;
 import com.github.zipcodewilmington.casino.ui.IOConsole;
 
 /**
@@ -458,7 +458,7 @@ public class Casino implements Runnable {
 public void playTriviaGame(Player firstPlayer) {
     try {
         console.println("Starting Trivia for " + firstPlayer.getUsername());
-        firstPlayer.getAccount().addGameEntry("Playing Trivia - Demo session");
+        firstPlayer.getAccount().addGameEntry("Playing Trivia - Session started");
 
         Trivia triviaGame = new Trivia(console); // Pass console to Trivia
         triviaGame.launch(firstPlayer);
