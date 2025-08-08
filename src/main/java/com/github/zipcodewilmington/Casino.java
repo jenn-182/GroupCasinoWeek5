@@ -27,6 +27,7 @@ public class Casino implements Runnable {
     private CasinoAccount currentAccount;
     private boolean isRunning;
     private Scanner scanner = new Scanner(System.in);
+    String playAgain="";
 
     // Constructor
     public Casino() {
@@ -447,9 +448,22 @@ public class Casino implements Runnable {
             System.out.println("- " + p.getUsername());
         }
 
-        // Start the game
-    craps.play ();
+     do {
+            // Start the game
+            craps.play ();
+
+        System.out.print("Do you want to play another round? (yes/no): ");
+            String playAgain = scanner.nextLine().trim().toLowerCase();
+
+        while (!playAgain.equals("yes") && !playAgain.equals("no")) {
+            System.out.print("Please enter 'yes' or 'no': ");
+            playAgain = scanner.nextLine().trim().toLowerCase();
+        }
+
+    } while (playAgain.equals("yes"));
+ System.out.println("Thanks for playing Craps!");
 }
+  
 
 
 
