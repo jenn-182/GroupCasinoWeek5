@@ -322,9 +322,9 @@ public class Poker implements GameInterface {
     }
 
     public void handleComputerAction(String computerName, int computerIndex) {
-        System.out.println(computerName + " is thinking...");
+        System.out.println("\n" + computerName + " is thinking...");
         try {
-            Thread.sleep(3500);
+            Thread.sleep(1500);
         } catch (InterruptedException e) {
             System.out.println(e);
         }
@@ -370,7 +370,7 @@ public class Poker implements GameInterface {
         System.out.println("");
 
         try {
-            Thread.sleep(1500);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             System.out.println(e);
         }
@@ -393,7 +393,10 @@ public class Poker implements GameInterface {
         handAnalyzer = new HandAnalyzer();
 
         System.out.println("\n=== SHOWDOWN ===");
-
+        for (Card card : communityCards) {
+            System.out.print(" | " + card + " | ");
+        }
+        System.out.println("\n");
         List<String> activePlayers = gameState.getActivePlayers();
 
         // Default win if only one player remains

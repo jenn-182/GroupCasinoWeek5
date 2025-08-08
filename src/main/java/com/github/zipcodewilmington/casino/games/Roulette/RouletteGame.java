@@ -38,7 +38,7 @@ public class RouletteGame implements GameInterface {
         }
     }
 
-    // Keep your existing constructor too if needed
+    
     public RouletteGame(Roulette wheel, double PlayerCurrentMoneyAmount, List<RouletteBet> currentBets) {
         this.wheel = wheel;
         this.playerCurrentMoneyAmount = PlayerCurrentMoneyAmount;
@@ -78,7 +78,7 @@ public class RouletteGame implements GameInterface {
             
             while (true) {
                 try {
-                    // Clean, simple prompt
+                    // simple prompt
                     System.out.println("Which bet will you choose? (or 'done' to spin)");
                     System.out.println("Examples: RED, 7, 1-2, 1-2-3, 1-2-4-5, TOPLINE");
                     
@@ -124,13 +124,13 @@ public class RouletteGame implements GameInterface {
 
                     currentBets.add(bet);
                     
-                    //  Clean success message like your example
+                    //  Clean success message
                     System.out.println(" Bet placed: $" + String.format("%.1f", amountBet) + " on " + formatBetDisplay(bet));
-                    System.out.println(); // Clean spacing
+                    System.out.println(); 
 
                 } catch (Exception e) {
                     System.out.println(" Invalid input! Please try again.");
-                    scanner.nextLine(); // Clear the scanner
+                    scanner.nextLine(); 
                     continue;
                 }
             }
@@ -152,7 +152,6 @@ public class RouletteGame implements GameInterface {
                 return;
             }
             
-            // ADD THIS LINE - Show table with winner highlighted
             showTableWithWinner(winner);
             
             System.out.println("Winner: " + (winner.getNumber() == 37 ? "00" : winner.getNumber()) + " " + winner.getColor());
@@ -208,7 +207,7 @@ public class RouletteGame implements GameInterface {
         }
     }
 
-    //  NEW: Streamlined betting info (shown once)
+    //Streamlined betting info (shown once)
     private void showStreamlinedBettingInfo() {
         System.out.println(" Your Balance: $" + String.format("%.2f", playerCurrentMoneyAmount));
         System.out.println(" Minimum bet: $10 | Maximum: $5000");
@@ -226,7 +225,7 @@ public class RouletteGame implements GameInterface {
         }
     }
 
-    //  NEW: Simplified bet creation
+    
     private RouletteBet createBetFromInput(String input, double amount) {
         // Handle help command
         if (input.equals("HELP")) {
@@ -253,7 +252,7 @@ public class RouletteGame implements GameInterface {
         return new RouletteBet(input, amount);
     }
 
-    // NEW: Show detailed help only when requested
+    //Show detailed help only when requested
     private void showDetailedHelp() {
         System.out.println();
         System.out.println(" ROULETTE BETTING GUIDE:");
@@ -597,7 +596,7 @@ public class RouletteGame implements GameInterface {
         System.out.println(" Top line: TOPLINE");
     }
 
-    // ENHANCED: Better bet display formatting
+    // bet display formatting
     private String formatBetDisplay(RouletteBet bet) {
         if (bet.getBetType().equals("STRAIGHT_UP")) {
             int num = bet.getNumberBet();
@@ -766,7 +765,7 @@ public class RouletteGame implements GameInterface {
             return;
         }
         
-        // ADD THIS LINE - Show table with winner highlighted
+        
         showTableWithWinner(winner);
         
         System.out.println(" WINNER: " + (winner.getNumber() == 37 ? "00" : winner.getNumber()) + " " + winner.getColor());
@@ -810,7 +809,7 @@ public class RouletteGame implements GameInterface {
             }
         }
         
-        // USE EXISTING METHODS (but creates console output)
+        
         CasinoAccount account = player.getAccount();
         
         // Withdraw total bets
