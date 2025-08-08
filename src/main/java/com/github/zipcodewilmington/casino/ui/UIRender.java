@@ -586,29 +586,6 @@ public class UIRender {
                 return text + String.format("%" + (totalWidth - text.length()) + "s", "");
         }
 
-        public void displayLoginConfirmationHeader(String username) {
-                String borderColor = LOGIN_COLOR;
-                String titleColor = yellow;
-                String background = black;
-                String messageColor = green;
-
-                System.out.println(
-                                borderColor + "╔══════════════════════════════════════════════════════════════════════╗"
-                                                + reset);
-                System.out.println(borderColor + "║" + background + titleColor + centerText("LOGIN CONFIRMATION", 70)
-                                + reset
-                                + borderColor + "║" + reset);
-                System.out.println(
-                                borderColor + "╠══════════════════════════════════════════════════════════════════════╣"
-                                                + reset);
-                String welcomeMsg = "Login successful! Welcome back, " + username + "!";
-                System.out.println(borderColor + "║" + background + messageColor + centerText(welcomeMsg, 70) + reset
-                                + borderColor + "║" + reset);
-                System.out.println(
-                                borderColor + "╚══════════════════════════════════════════════════════════════════════╝"
-                                                + reset);
-                System.out.println();
-        }
 
         public void displayRegistrationHeader() {
                 String borderColor = LOGIN_COLOR;
@@ -630,8 +607,7 @@ public class UIRender {
                 System.out.println();
         }
 
-        public void displayRegistrationConfirmationHeader(String username) {
-                String borderColor = LOGIN_COLOR;
+        public void displayConfirmationHeader(String title, String message, String borderColor) {
                 String titleColor = yellow;
                 String background = black;
                 String messageColor = white;
@@ -639,11 +615,10 @@ public class UIRender {
                 System.out.println(borderColor
                                 + "╔══════════════════════════════════════════════════════════════════════╗" + reset);
                 System.out.println(borderColor + "║" + background + titleColor
-                                + centerText("REGISTRATION CONFIRMATION", 70) + reset + borderColor + "║" + reset);
+                                + centerText(title, 70) + reset + borderColor + "║" + reset);
                 System.out.println(borderColor
                                 + "╠══════════════════════════════════════════════════════════════════════╣" + reset);
-                String confirmMsg = "Account created! Welcome, " + username + "!";
-                System.out.println(borderColor + "║" + background + messageColor + centerText(confirmMsg, 70) + reset
+                System.out.println(borderColor + "║" + background + messageColor + centerText(message, 70) + reset
                                 + borderColor + "║" + reset);
                 System.out.println(borderColor
                                 + "╚══════════════════════════════════════════════════════════════════════╝" + reset);

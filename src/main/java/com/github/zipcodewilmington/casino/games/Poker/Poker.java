@@ -5,10 +5,11 @@ import java.util.List;
 import java.util.Scanner;
 import com.github.zipcodewilmington.casino.GameInterface;
 import com.github.zipcodewilmington.casino.Player;
+import com.github.zipcodewilmington.casino.ui.AnsiColor;
 
 public class Poker implements GameInterface {
 
-    private Player player; 
+    private Player player;
     private List<String> computers;
     private Deck dealerDeck;
     private Hand playerHand;
@@ -41,7 +42,7 @@ public class Poker implements GameInterface {
 
         // Initialize GameState with actual player username
         gameState.updatePlayerName("Player", player.getUsername());
-       
+
         for (int i = 1; i <= 3; i++) {
             computers.add("Bot" + i);
             computerHands.add(new Hand());
@@ -51,22 +52,22 @@ public class Poker implements GameInterface {
     @Override
     public void play() {
         dealCards();
-        
+
         while (currentRound < 4 && gameState.isGameActive()) {
             dealCommunityCards();
             displayGameState();
-            
+
             // Betting round
             conductBettingRound();
-            
+
             if (gameState.getActivePlayers().size() <= 1) {
                 // Only one player left, end game
                 break;
             }
-            
+
             currentRound++;
         }
-        
+
         showdown();
     }
 
@@ -87,7 +88,8 @@ public class Poker implements GameInterface {
 
     public void dealCommunityCards() {
         switch (currentRound) {
-            case 0: break; // Pre-flop
+            case 0:
+                break; // Pre-flop
             case 1: // Flop - 3 cards
                 for (int i = 0; i < 3; i++) {
                     communityCards.add(dealerDeck.dealCard());
@@ -104,13 +106,11 @@ public class Poker implements GameInterface {
         // Reset betting round
         bettingManager.startNewBettingRound();
         gameState.resetPlayerActions();
-        
-        
-        
+
         // Continue betting until all active players have acted on current bet
         while (!allPlayersHaveActed()) {
             boolean anyPlayerActed = false;
-            
+
             // Player action first
             if (gameState.isPlayerActive(player.getUsername()) && !gameState.hasPlayerActed(player.getUsername())) {
                 // Check if player is all-in (has no money left)
@@ -123,17 +123,17 @@ public class Poker implements GameInterface {
                     anyPlayerActed = true;
                 }
             }
-            
+
             // Computer actions - only for computers that haven't acted
             for (int i = 0; i < computers.size(); i++) {
                 String computerName = computers.get(i);
-                
+
                 if (gameState.isPlayerActive(computerName) && !gameState.hasPlayerActed(computerName)) {
                     handleComputerAction(computerName, i);
                     anyPlayerActed = true;
                 }
             }
-            
+
             // Safety check to prevent infinite loop
             if (!anyPlayerActed) {
                 System.out.println("DEBUG: No players acted, breaking loop");
@@ -141,7 +141,7 @@ public class Poker implements GameInterface {
             }
         }
     }
-    
+
     private boolean allPlayersHaveActed() {
         for (String playerName : gameState.getActivePlayers()) {
             if (!gameState.hasPlayerActed(playerName)) {
@@ -152,20 +152,20 @@ public class Poker implements GameInterface {
     }
 
     public void handlePlayerAction() {
-        System.out.println("\n" + player.getUsername() + "'s turn");
-        System.out.println("Your balance: $" + player.getAccount().getBalance());
+        System.out.println("\n" + AnsiColor.GREEN.getColor() + player.getUsername() + "'s turn");
+        System.out.println("Your balance: $" + player.getAccount().getBalance() + AnsiColor.AUTO.getColor());
         playerHand.printHand();
-        
+
         double currentBet = bettingManager.getCurrentBet();
         double playerBet = gameState.getPlayerBet(player.getUsername());
         double amountToCall = currentBet - playerBet;
-        
-        System.out.println("Current bet: $" + currentBet);
+
+        System.out.println(AnsiColor.RED.getColor() + "Current bet: $" + currentBet);
         if (amountToCall > 0) {
             System.out.println("Amount to call: $" + amountToCall);
         }
-        
-        System.out.println("Choose action:");
+
+        System.out.println("\nChoose action:" + AnsiColor.AUTO.getColor());
         System.out.println("1. Fold");
         if (amountToCall > 0) {
             System.out.println("2. Call ($" + amountToCall + ")");
@@ -174,16 +174,16 @@ public class Poker implements GameInterface {
         }
         System.out.println("3. Raise");
         System.out.println("4. All-In ($" + player.getAccount().getBalance() + ")");
-        
+
         int choice = getPlayerChoice(1, 4);
-        
+
         switch (choice) {
             case 1: // Fold
                 gameState.foldPlayer(player.getUsername());
                 gameState.setPlayerActed(player.getUsername());
                 System.out.println("You folded.");
                 break;
-                
+
             case 2: // Call/Check
                 if (amountToCall > 0) {
                     if (bettingManager.canAfford(player, amountToCall)) {
@@ -201,11 +201,11 @@ public class Poker implements GameInterface {
                     System.out.println("You checked.");
                 }
                 break;
-                
+
             case 3: // Raise
                 handleRaise();
                 break;
-                
+
             case 4: // All-In
                 handleAllIn();
                 break;
@@ -216,19 +216,21 @@ public class Poker implements GameInterface {
         double currentBet = bettingManager.getCurrentBet();
         double playerBet = gameState.getPlayerBet(player.getUsername());
         double amountToCall = currentBet - playerBet;
-        
+
         // Calculate minimum raise properly
         double minRaise;
         if (amountToCall > 0) {
-            // Someone has bet, so minimum raise is double the current bet minus what we've already put in
+            // Someone has bet, so minimum raise is double the current bet minus what we've
+            // already put in
             minRaise = Math.max(minbet, currentBet * 2 - playerBet);
         } else {
-            // No one has bet this round (everyone checked), so minimum raise is just the min bet
+            // No one has bet this round (everyone checked), so minimum raise is just the
+            // min bet
             minRaise = minbet;
         }
-        
+
         double playerBalance = player.getAccount().getBalance();
-        
+
         // Check if player can afford the minimum raise
         if (playerBalance < minRaise) {
             System.out.println("You don't have enough money to make the minimum raise of $" + minRaise);
@@ -237,33 +239,34 @@ public class Poker implements GameInterface {
             handlePlayerAction(); // Go back to main menu
             return;
         }
-        
+
         System.out.println("Minimum raise: $" + minRaise);
         System.out.println("Enter raise amount: ");
-        
+
         double raiseAmount = getPlayerBetAmount();
-        
+
         if (raiseAmount < minRaise) {
             System.out.println("Raise too small! Minimum: $" + minRaise);
             handleRaise(); // Try again
             return;
         }
-        
+
         if (!bettingManager.canAfford(player, raiseAmount)) {
             System.out.println("Not enough money!");
             handleRaise(); // Try again
             return;
         }
-        
+
         bettingManager.processBet(player, raiseAmount, gameState);
         double newBetLevel = playerBet + raiseAmount;
         bettingManager.setCurrentBet(newBetLevel);
         gameState.setPlayerBet(player.getUsername(), newBetLevel);
-        
-        // KEY CHANGE: Reset all other players' actions since there's a new bet to respond to
+
+        // KEY CHANGE: Reset all other players' actions since there's a new bet to
+        // respond to
         gameState.resetPlayerActionsExcept(player.getUsername());
         gameState.setPlayerActed(player.getUsername()); // Raiser has acted on this bet level
-        
+
         System.out.println("You raised to $" + newBetLevel);
     }
 
@@ -272,15 +275,15 @@ public class Poker implements GameInterface {
         double currentBet = bettingManager.getCurrentBet();
         double playerBet = gameState.getPlayerBet(player.getUsername());
         double newPlayerBet = playerBet + playerBalance;
-        
+
         // Put all remaining money into the pot
         bettingManager.processBet(player, playerBalance, gameState);
         gameState.setPlayerBet(player.getUsername(), newPlayerBet);
         gameState.setPlayerActed(player.getUsername());
-        
+
         System.out.println("You went all-in with $" + playerBalance + "!");
         System.out.println("Your total bet is now $" + newPlayerBet);
-        
+
         // If the all-in amount is more than the current bet, it's effectively a raise
         if (newPlayerBet > currentBet) {
             bettingManager.setCurrentBet(newPlayerBet);
@@ -318,20 +321,20 @@ public class Poker implements GameInterface {
 
     public void handleComputerAction(String computerName, int computerIndex) {
         System.out.println(computerName + " is thinking...");
-        
+
         // Simple AI logic
         double currentBet = bettingManager.getCurrentBet();
         double computerBet = gameState.getPlayerBet(computerName);
         double amountToCall = currentBet - computerBet;
-        
+
         // Random decision for now (you can make this smarter later)
         double random = Math.random();
-        
+
         if (random < 0.2) { // 20% chance to fold
             gameState.foldPlayer(computerName);
             gameState.setPlayerActed(computerName);
             System.out.println(computerName + " folded.");
-            
+
         } else if (random < 0.8) { // 60% chance to call
             if (amountToCall > 0) {
                 // Assume computers have enough money for simplicity
@@ -343,18 +346,18 @@ public class Poker implements GameInterface {
                 gameState.setPlayerActed(computerName);
                 System.out.println(computerName + " checked.");
             }
-            
+
         } else { // 20% chance to raise
             double raiseAmount = minbet + (Math.random() * 100);
             double newBetLevel = currentBet + raiseAmount;
             bettingManager.setCurrentBet(newBetLevel);
             gameState.addToPot(amountToCall + raiseAmount);
             gameState.setPlayerBet(computerName, newBetLevel);
-            
+
             // KEY CHANGE: Reset all other players' actions since there's a new bet
             gameState.resetPlayerActionsExcept(computerName);
             gameState.setPlayerActed(computerName); // This computer has acted on this bet level
-            
+
             System.out.println(computerName + " raised to $" + newBetLevel);
         }
     }
@@ -362,20 +365,20 @@ public class Poker implements GameInterface {
     public void handleComputerActions() {
         for (int i = 0; i < computers.size(); i++) {
             String computerName = computers.get(i);
-            
+
             if (!gameState.isPlayerActive(computerName) || gameState.hasPlayerActed(computerName)) {
                 continue; // Skip if folded or already acted
             }
-            
+
             handleComputerAction(computerName, i);
         }
     }
 
     public void showdown() {
         System.out.println("\n=== SHOWDOWN ===");
-        
+
         List<String> activePlayers = gameState.getActivePlayers();
-        
+
         if (activePlayers.size() == 1) {
             System.out.println(activePlayers.get(0) + " wins by default!");
             // Award pot to winner
@@ -384,13 +387,13 @@ public class Poker implements GameInterface {
             }
             return;
         }
-        
+
         // Show hands of active players
         if (gameState.isPlayerActive(player.getUsername())) {
             System.out.print(player.getUsername() + ": ");
             playerHand.printHand();
         }
-        
+
         for (int i = 0; i < computers.size(); i++) {
             String computerName = computers.get(i);
             if (gameState.isPlayerActive(computerName)) {
@@ -398,24 +401,25 @@ public class Poker implements GameInterface {
                 computerHands.get(i).printHand();
             }
         }
-        
+
         System.out.println("Winner determination coming soon...");
         // TODO: Use HandAnalyzer to determine winner
     }
 
     public void displayGameState() {
-        System.out.println("\n\n=== Round " + (currentRound + 1) + " ===");
+        System.out.println(AnsiColor.PURPLE.getColor() + "\n\n=== Round " + (currentRound + 1) + " ===");
         System.out.println("Pot: $" + gameState.getPot());
-        
+
         if (!communityCards.isEmpty()) {
-            System.out.print("Community Cards: ");
+            System.out.print("Community Cards:" + AnsiColor.AUTO.getColor());
             for (Card card : communityCards) {
-                System.out.print(card + " ");
+                System.out.print(" | "+card + " | ");
             }
             System.out.println();
         }
-        
-        System.out.println("Active players: " + gameState.getActivePlayers().size());
+
+        System.out.println(AnsiColor.PURPLE.getColor() + "Active players: " + gameState.getActivePlayers().size()
+                + AnsiColor.AUTO.getColor());
     }
 
     @Override
@@ -448,5 +452,11 @@ public class Poker implements GameInterface {
     @Override
     public int getMaximumBet() {
         return (int) maxbet;
+    }
+
+    @Override
+    public void launch(Player primaryPlayer) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'launch'");
     }
 }
