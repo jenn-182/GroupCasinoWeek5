@@ -1,4 +1,8 @@
 
 jroc182 | Category: Geography | Score: 2
 jroc182 | Category: Geography | Score: 2
+<<<<<<< HEAD
 jroc182 | Category: Technology | Score: 0
+=======
+jroc182 | Category: Computer Science | Score: 1
+>>>>>>> 912d1faada15958677ff26a06bfd015742485da2
