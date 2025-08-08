@@ -142,7 +142,7 @@ public class RouletteGame implements GameInterface {
             }
 
             // Spin the wheel
-            System.out.println("\n Spinning the wheel...");
+            System.out.println("\nSpinning the wheel...");
             Thread.sleep(1000); // Dramatic pause
             
             RouletteNumber winner = wheel.spin();
