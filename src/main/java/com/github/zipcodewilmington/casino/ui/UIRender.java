@@ -122,11 +122,20 @@ public void displayCasinoMenuHeader(String username) {
         System.out.println(borderColor + "╔══════════════════════════════════════════════════════════════════════╗" + reset);
         System.out.println(borderColor + "║" + background + titleColor + "                            CASINO FLOOR                              " + reset + borderColor + "║" + reset);
         System.out.println(borderColor + "╠══════════════════════════════════════════════════════════════════════╣" + reset);
-        System.out.println(borderColor + "║" + background + welcomeColor + "                       Welcome back, " + username + "!                         " + reset + borderColor + "║" + reset);
-        System.out.println(borderColor + "║" + background + welcomeColor + "                        Let the games begin!                          " + reset + borderColor + "║" + reset);
+        
+        //padding
+        String welcomeMessage = "Welcome back, " + username + "!";
+        String centeredWelcome = centerText(welcomeMessage, 70);
+        System.out.println(borderColor + "║" + background + welcomeColor + centeredWelcome + reset + borderColor + "║" + reset);
+        
+        String gameMessage = "Let the games begin!";
+        String centeredGame = centerText(gameMessage, 70);
+        System.out.println(borderColor + "║" + background + welcomeColor + centeredGame + reset + borderColor + "║" + reset);
+        
         System.out.println(borderColor + "╚══════════════════════════════════════════════════════════════════════╝" + reset);
         System.out.println();
         
+        // Menu options 
         System.out.println(borderColor + "┌──────────────────────────────────────────────────────────────────────┐" + reset);
         System.out.println(borderColor + "│" + background + titleColor + "  MAIN MENU:                                                          " + reset + borderColor + "│" + reset);
         System.out.println(borderColor + "│" + background + "                                                                      " + reset + borderColor + "│" + reset);
@@ -150,7 +159,7 @@ public void displayCasinoMenuHeader(String username) {
         System.out.println(borderColor + "╔══════════════════════════════════════════════════════════════════════╗" + reset);
         System.out.println(borderColor + "║" + background + titleColor + "                           GAME SELECTION                             " + reset + borderColor + "║" + reset);
         System.out.println(borderColor + "╠══════════════════════════════════════════════════════════════════════╣" + reset);
-        System.out.println(borderColor + "║" + background + optionText + "                       Choose your adventure!                         " + reset + borderColor + "║" + reset);
+        System.out.println(borderColor + "║" + background + optionText + "                       Choose your game!                         " + reset + borderColor + "║" + reset);
         System.out.println(borderColor + "║" + background + optionText + "                     May the odds be in your favor                    " + reset + borderColor + "║" + reset);
         System.out.println(borderColor + "╚══════════════════════════════════════════════════════════════════════╝" + reset);
         System.out.println();
@@ -180,8 +189,17 @@ public void displayCasinoMenuHeader(String username) {
         System.out.println(borderColor + "╔══════════════════════════════════════════════════════════════════════╗" + reset);
         System.out.println(borderColor + "║" + background + titleColor + "                     BANKING & ACCOUNT MANAGEMENT                     " + reset + borderColor + "║" + reset);
         System.out.println(borderColor + "╠══════════════════════════════════════════════════════════════════════╣" + reset);
-        System.out.println(borderColor + "║" + background + welcomeColor + "                       Account Holder: " + username + "                        " + reset + borderColor + "║" + reset);
-        System.out.println(borderColor + "║" + background + balanceColor + "                      Current Balance: $" + String.format("%.2f", balance) + "                        " + reset + borderColor + "║" + reset);
+        
+        // Fix username line
+        String accountMessage = "Account Holder: " + username;
+        String centeredAccount = centerText(accountMessage, 70);
+        System.out.println(borderColor + "║" + background + welcomeColor + centeredAccount + reset + borderColor + "║" + reset);
+        
+        
+        String balanceMessage = "Current Balance: $" + String.format("%.2f", balance);
+        String centeredBalance = centerText(balanceMessage, 70);
+        System.out.println(borderColor + "║" + background + balanceColor + centeredBalance + reset + borderColor + "║" + reset);
+        
         System.out.println(borderColor + "╚══════════════════════════════════════════════════════════════════════╝" + reset);
         System.out.println();
         
@@ -205,7 +223,6 @@ public void displayCasinoMenuHeader(String username) {
         String optionText = "\u001B[97m";      // White option text
         String background = "\u001B[40m";      // Black background
         String balanceColor = "\u001B[33m";    // Yellow for balance
-        String statusColor = "\u001B[96m";     // Cyan for status
         
         // Profile Information
         String username = currentPlayer.getUsername();
@@ -217,10 +234,24 @@ public void displayCasinoMenuHeader(String username) {
         System.out.println(borderColor + "╔══════════════════════════════════════════════════════════════════════╗" + reset);
         System.out.println(borderColor + "║" + background + titleColor + "                      GAMING PROFILE & HISTORY                        " + reset + borderColor + "║" + reset);
         System.out.println(borderColor + "╠══════════════════════════════════════════════════════════════════════╣" + reset);
-        System.out.println(borderColor + "║" + background + welcomeColor + "                        Player:  " + username + "                              " + reset + borderColor + "║" + reset);
-        System.out.println(borderColor + "║" + background + balanceColor + "                     Account Balance: $" + String.format("%.2f", balance) + "                         " + reset + borderColor + "║" + reset);
-        System.out.println(borderColor + "║" + background + welcomeColor + "                     Total Games Played: " + totalGames + "                            " + reset + borderColor + "║" + reset);
-        System.out.println(borderColor + "║" + background + titleColor + "                     Player Status: " + playerStatus + "           " + reset + borderColor + "║" + reset);
+        
+        
+        String playerMessage = "Player: " + username;
+        String centeredPlayer = centerText(playerMessage, 70);
+        System.out.println(borderColor + "║" + background + welcomeColor + centeredPlayer + reset + borderColor + "║" + reset);
+        
+        String balanceMessage = "Account Balance: $" + String.format("%.2f", balance);
+        String centeredBalanceMsg = centerText(balanceMessage, 70);
+        System.out.println(borderColor + "║" + background + balanceColor + centeredBalanceMsg + reset + borderColor + "║" + reset);
+        
+        String gamesMessage = "Total Games Played: " + totalGames;
+        String centeredGames = centerText(gamesMessage, 70);
+        System.out.println(borderColor + "║" + background + welcomeColor + centeredGames + reset + borderColor + "║" + reset);
+        
+        String statusMessage = "Player Status: " + playerStatus;
+        String centeredStatus = centerText(statusMessage, 70);
+        System.out.println(borderColor + "║" + background + titleColor + centeredStatus + reset + borderColor + "║" + reset);
+        
         System.out.println(borderColor + "╚══════════════════════════════════════════════════════════════════════╝" + reset);
         System.out.println();
         
@@ -232,5 +263,24 @@ public void displayCasinoMenuHeader(String username) {
         System.out.println(borderColor + "│" + background + optionNumbers + "  [3] " + optionText + "Back to Main Menu                                               " + reset + borderColor + "│" + reset);
         System.out.println(borderColor + "│" + background + "                                                                      " + reset + borderColor + "│" + reset);
         System.out.println(borderColor + "└──────────────────────────────────────────────────────────────────────┘" + reset);
+    }
+
+    private String centerText(String text, int totalWidth) {
+        if (text.length() >= totalWidth) {
+            return text.substring(0, totalWidth); // Truncate if too long
+        }
+        
+        int padding = totalWidth - text.length();
+        int leftPad = padding / 2;
+        int rightPad = padding - leftPad;
+        
+        return String.format("%" + leftPad + "s%s%" + rightPad + "s", "", text, "");
+    }
+
+    private String padToWidth(String text, int totalWidth) {
+        if (text.length() >= totalWidth) {
+            return text.substring(0, totalWidth);
+        }
+        return text + String.format("%" + (totalWidth - text.length()) + "s", "");
     }
 }

@@ -37,9 +37,8 @@ public class CrapsBetting {
                 System.out.println(player.getUsername() + " loses $" + bet.getAmount() + ".");
                 player.getAccount().withdraw(bet.getAmount());
             }
-            
-            currentBets.clear();
         }
+         currentBets.clear();
     }
 
     private static class Bet {

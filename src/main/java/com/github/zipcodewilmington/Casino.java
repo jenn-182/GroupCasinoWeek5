@@ -1,22 +1,32 @@
 package com.github.zipcodewilmington;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+
 import com.github.zipcodewilmington.casino.CasinoAccount;
 import com.github.zipcodewilmington.casino.CasinoAccountManager;
 import com.github.zipcodewilmington.casino.Player;
+import com.github.zipcodewilmington.casino.games.Craps.Craps;
 import com.github.zipcodewilmington.casino.games.Poker.Poker;
+import com.github.zipcodewilmington.casino.games.TriviaGame.Trivia;
 import com.github.zipcodewilmington.casino.games.numberguess.NumberGuessGame;
 import com.github.zipcodewilmington.casino.games.numberguess.NumberGuessPlayer;
 import com.github.zipcodewilmington.casino.ui.IOConsole;
 
 /**
- * Created by leon on 7/21/2020.
- * Casino - Main orchestrator of the casino application
+ * Created by leon on 7/21/2020. Casino - Main orchestrator of the casino
+ * application
  */
 public class Casino implements Runnable {
+
     private final IOConsole console;
     private final CasinoAccountManager accountManager;
     private CasinoAccount currentAccount;
     private boolean isRunning;
+    private Scanner scanner = new Scanner(System.in);
 
     // Constructor
     public Casino() {
@@ -162,7 +172,6 @@ public class Casino implements Runnable {
                     currentBets);
 
             // This runs the COMPLETE RouletteGame with ALL original prompts:
-
             game.playGame();
 
             // Sync the game results back to the casino account
@@ -184,8 +193,8 @@ public class Casino implements Runnable {
 
             // Update final balance and add to game history
             console.println("Updated Casino Balance: $" + String.format("%.2f", player.getAccount().getBalance()));
-            player.getAccount().addGameEntry("Roulette Session - Net: " +
-                    (difference >= 0 ? "+$" + String.format("%.2f", difference)
+            player.getAccount().addGameEntry("Roulette Session - Net: "
+                    + (difference >= 0 ? "+$" + String.format("%.2f", difference)
                             : "-$" + String.format("%.2f", Math.abs(difference))));
 
             console.println("Thank you for playing Roulette! Returning to main casino floor...");
@@ -207,21 +216,91 @@ public class Casino implements Runnable {
             console.println("Error in Poker game: " + e.getMessage());
         }
     }
+// Craps Game
 
-    public void playCrapsGame(Player player) {
-        try {
-            console.println("Starting Craps for " + player.getUsername());
-            player.getAccount().addGameEntry("Played Craps - Demo session");
-            console.println("Craps session completed!");
-        } catch (Exception e) {
-            console.println("Error in Craps game: " + e.getMessage());
+    public void playCrapsGame(Player loggedInPlayer) {
+        Craps craps = new Craps();
+
+        // Add the logged-in player first
+        craps.add(loggedInPlayer);
+
+        // Show all available players
+        List<CasinoAccount> allAccounts = new ArrayList<>(accountManager.loadAccounts().values());
+
+        System.out.println("Available players to join (excluding you):");
+        int idx = 1;
+        Map<Integer, Player> indexToPlayer = new HashMap<>();
+
+        for (CasinoAccount account : allAccounts) {
+            if (!account.getUsername().equals(loggedInPlayer.getUsername())) {
+                System.out.println(idx + ": " + account.getUsername());
+                indexToPlayer.put(idx, account.getPlayer());
+                idx++;
+            }
         }
-    }
 
-   public void playTriviaGame(Player firstPlayer) {
+        System.out.println("You can add up to 4 more players to join (max 5 total).");
+        System.out.println("Type player number to add, or type END to finish.");
+
+        while (craps.getPlayers().size() < 5) {
+            System.out.print("Enter player number or END to stop: ");
+            String input = scanner.nextLine().trim();
+
+            if (input.equalsIgnoreCase("END")) {
+                break;  // Stop asking for players
+            }
+
+            try {
+                int selection = Integer.parseInt(input);
+                Player selectedPlayer = indexToPlayer.get(selection);
+
+                if (selectedPlayer == null) {
+                    System.out.println("Invalid player number. Try again.");
+                    continue;
+                }
+
+                if (craps.getPlayers().contains(selectedPlayer)) {
+                    System.out.println("Player already added. Pick someone else.");
+                    continue;
+                }
+
+                // Ask for password
+                System.out.print("Enter password for " + selectedPlayer.getUsername() + ": ");
+                String password = scanner.nextLine();
+
+                // Verify password using CasinoAccountManager (you need access to it)
+                CasinoAccount account = accountManager.getAccount(selectedPlayer.getUsername(), password);
+
+                if (account != null) {
+                    craps.add(selectedPlayer);
+                    System.out.println(selectedPlayer.getUsername() + " added successfully.");
+                } else {
+                    System.out.println("Incorrect password. Player not added.");
+                }
+
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a valid player number or END.");
+            }
+        }
+    System.out.println (
+
+    "Starting Craps with players:");
+        for (Player p : craps.getPlayers()) {
+            System.out.println("- " + p.getUsername());
+        }
+
+        // Start the game
+    craps.play ();
+}
+
+
+
+
+
+public void playTriviaGame(Player firstPlayer) {
     try {
         console.println("Starting Trivia for " + firstPlayer.getUsername());
-        firstPlayer.getAccount().addGameEntry("Played Trivia - Demo session");
+        firstPlayer.getAccount().addGameEntry("Playing Trivia - Demo session");
 
         Trivia triviaGame = new Trivia(console); // Pass console to Trivia
         triviaGame.launch(firstPlayer);
@@ -232,8 +311,6 @@ public class Casino implements Runnable {
     }
 }
 
-
-    
 
     public void playNumberGuessGame(Player player) {
         try {

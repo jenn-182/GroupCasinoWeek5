@@ -11,42 +11,55 @@ import com.github.zipcodewilmington.casino.games.Craps.CrapsBetting.BetType;
 
 public class Craps implements GameInterface {
 
-    private final Dice dice1 = new Dice();                      // creates an instances of dice class
+    private final Dice dice1 = new Dice();                          // creates an instances of dice class
     private final Dice dice2 = new Dice();
-    private Scanner scanner = new Scanner(System.in);           // get Input from keybaord
-    private final CrapsBetting betting = new CrapsBetting(); // handles all betting logic
-    private List<Player> players = new ArrayList<>();       // list used to track players
+    private Scanner scanner = new Scanner(System.in);               // get Input from keybaord
+    private final CrapsBetting betting = new CrapsBetting();        // handles all betting logic
+    private List<Player> players = new ArrayList<>();               // list used to track players
+    private Player currentPlayer;
 
     public void play(List<Player> players) {
         System.out.println("Welcome to Craps!!!");
+        System.out.println("\n--- How to Bet in Craps ---");
+        System.out.println("Pass Line Bet:");
+        System.out.println(" - Win if first roll is 7 or 11.");
+        System.out.println(" - Lose if first roll is 2, 3, or 12.");
+        System.out.println(" - If point is set, win if point is rolled again before 7.");
+        System.out.println("Don't Pass Line Bet:");
+        System.out.println(" - Lose if first roll is 7 or 11.");
+        System.out.println(" - Win if first roll is 2 or 3.");
+        System.out.println(" - Tie if first roll is 12.");
+        System.out.println(" - If point is set, win if 7 is rolled before point.\n");
 
-        Player shooter = chooseRandomShooter(players);          // selects shooter 
+        Player shooter = chooseRandomShooter(players);              // selects shooter 
 
-        for (Player player : players) {                         // loops through hasmap
+        for (Player player : players) {                             // loops through hasmap
             BetType betType;
 
-            if (player.equals(shooter)) {                       // if player is shooter sets as pass 
+            if (player.equals(shooter)) {                           // if player is shooter sets as pass 
                 betType = CrapsBetting.BetType.PASS_LINE;
                 System.out.println(player.getUsername() + " is the shooter and automatically on PASS line.");
             } else {
-                betType = askBetType(player);                // the rest are asked for bet type;
+                betType = askBetType(player);                       // the rest are asked for bet type;
             }
             double betAmount = askBetAmount(player);
             betting.placeBet(player, betType, betAmount);
 
         }
         // first roll 
+        System.out.println("Press Enter to roll the dice...");
+        scanner.nextLine();
         int roll1 = dice1.roll();
         int roll2 = dice2.roll();
         int total = roll1 + roll2;
         System.out.println("Shooter rolled: " + roll1 + " + " + roll2 + " = " + total);
 
-        FirstRollResult result = evaluateFirstRoll(total);             //creates a result var to FRR type
+        FirstRollResult result = evaluateFirstRoll(total);            //creates a result var to FRR type
 
         switch (result) {
             case WIN:
                 System.out.println("Result: Pass line bets WIN!");
-                betting.payOut(true);            // might have to create a bet class
+                betting.payOut(true);                   // might have to create a bet class
                 break;
             case LOSE:
                 System.out.println("Result: Pass line bets LOSE!");
@@ -61,11 +74,12 @@ public class Craps implements GameInterface {
 
     }
 
-    
 // other methods and functions
     // point base game
     private void playPointPhase(List<Player> players, int point) {
         while (true) {
+            System.out.println("Press Enter to roll the dice...");
+            scanner.nextLine();
             int roll1 = dice1.roll();
             int roll2 = dice2.roll();
             int total = roll1 + roll2;
@@ -84,7 +98,7 @@ public class Craps implements GameInterface {
     }
 
     private BetType askBetType(Player player) {
-        System.out.println("player.getName()" + ", choose your bet type (pass/don't pass): ");
+        System.out.println(player.getUsername() + ", choose your bet type (pass/don't pass): ");
         String betType = scanner.nextLine().trim().toLowerCase();
 
         while (!betType.equals("pass") && !betType.equals("don't pass")) {
@@ -106,7 +120,7 @@ public class Craps implements GameInterface {
     }
 
     // Firstroll enmu setting
-    public enum FirstRollResult {          // fixed states
+    public enum FirstRollResult {                                           // fixed states
         WIN, LOSE, POINT
     }
 
@@ -142,6 +156,12 @@ public class Craps implements GameInterface {
             }
         }
     }
+
+    // get players
+    public List<Player> getPlayers() {
+        return players;
+    }
+
     // interface methods
     // game name
     @Override
@@ -182,14 +202,28 @@ public class Craps implements GameInterface {
     public boolean remove(Player player) {
         return players.remove(player);
     }
+
     // play game
-       @Override
+    @Override
     public void play() {
+
         if (players.isEmpty()) {
             System.out.println("No players added. Add players before starting the game.");
             return;
         }
-        play(players); 
+        play(players);
+    }
+
+    @Override
+    public void run() {
+        play();
+
+    }
+
+    @Override
+    public void launch(Player player) {
+        this.currentPlayer = player;
+        System.out.println("Welcome to Craps, " + player.getUsername() + "!");
     }
 
 }
