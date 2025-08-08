@@ -11,25 +11,25 @@ import com.github.zipcodewilmington.casino.games.Craps.CrapsBetting.BetType;
 
 public class Craps implements GameInterface {
 
-    private final Dice dice1 = new Dice();                      // creates an instances of dice class
+    private final Dice dice1 = new Dice();                          // creates an instances of dice class
     private final Dice dice2 = new Dice();
-    private Scanner scanner = new Scanner(System.in);           // get Input from keybaord
-    private final CrapsBetting betting = new CrapsBetting(); // handles all betting logic
-    private List<Player> players = new ArrayList<>();       // list used to track players
+    private Scanner scanner = new Scanner(System.in);               // get Input from keybaord
+    private final CrapsBetting betting = new CrapsBetting();        // handles all betting logic
+    private List<Player> players = new ArrayList<>();               // list used to track players
 
     public void play(List<Player> players) {
         System.out.println("Welcome to Craps!!!");
 
-        Player shooter = chooseRandomShooter(players);          // selects shooter 
+        Player shooter = chooseRandomShooter(players);              // selects shooter 
 
-        for (Player player : players) {                         // loops through hasmap
+        for (Player player : players) {                             // loops through hasmap
             BetType betType;
 
-            if (player.equals(shooter)) {                       // if player is shooter sets as pass 
+            if (player.equals(shooter)) {                           // if player is shooter sets as pass 
                 betType = CrapsBetting.BetType.PASS_LINE;
                 System.out.println(player.getUsername() + " is the shooter and automatically on PASS line.");
             } else {
-                betType = askBetType(player);                // the rest are asked for bet type;
+                betType = askBetType(player);                       // the rest are asked for bet type;
             }
             double betAmount = askBetAmount(player);
             betting.placeBet(player, betType, betAmount);
@@ -41,12 +41,12 @@ public class Craps implements GameInterface {
         int total = roll1 + roll2;
         System.out.println("Shooter rolled: " + roll1 + " + " + roll2 + " = " + total);
 
-        FirstRollResult result = evaluateFirstRoll(total);             //creates a result var to FRR type
+        FirstRollResult result = evaluateFirstRoll(total);            //creates a result var to FRR type
 
         switch (result) {
             case WIN:
                 System.out.println("Result: Pass line bets WIN!");
-                betting.payOut(true);            // might have to create a bet class
+                betting.payOut(true);                   // might have to create a bet class
                 break;
             case LOSE:
                 System.out.println("Result: Pass line bets LOSE!");
@@ -61,7 +61,6 @@ public class Craps implements GameInterface {
 
     }
 
-    
 // other methods and functions
     // point base game
     private void playPointPhase(List<Player> players, int point) {
@@ -106,7 +105,7 @@ public class Craps implements GameInterface {
     }
 
     // Firstroll enmu setting
-    public enum FirstRollResult {          // fixed states
+    public enum FirstRollResult {                                           // fixed states
         WIN, LOSE, POINT
     }
 
@@ -142,6 +141,7 @@ public class Craps implements GameInterface {
             }
         }
     }
+
     // interface methods
     // game name
     @Override
@@ -182,14 +182,20 @@ public class Craps implements GameInterface {
     public boolean remove(Player player) {
         return players.remove(player);
     }
+
     // play game
-       @Override
+    @Override
     public void play() {
         if (players.isEmpty()) {
             System.out.println("No players added. Add players before starting the game.");
             return;
         }
-        play(players); 
+        play(players);
     }
 
+    @Override
+    public void run() {
+        play();
+
+    }
 }
