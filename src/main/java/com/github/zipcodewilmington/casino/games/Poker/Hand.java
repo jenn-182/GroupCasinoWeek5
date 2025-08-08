@@ -4,26 +4,28 @@ import java.util.Stack;
 
 public class Hand {
 
-    private Stack<Card>hand;
+    private Stack<Card> hand;
 
-    Hand(){
+    Hand() {
         hand = new Stack<>();
     }
 
-    public void receiveCard(Card card){
+    public void receiveCard(Card card) {
         hand.push(card);
     }
-    public Stack<Card> returnCardsToDealer(){
+
+    public Stack<Card> returnCardsToDealer() {
         return hand;
     }
-    public void printHand(){
+
+    public void printHand() {
         for (Card card : hand) {
-            System.out.print(card+" | ");
+            System.out.print(" | " + card + " | ");
         }
         System.out.println("");
     }
 
-    public Stack<Card> gethand(){
+    public Stack<Card> gethand() {
         return hand;
     }
 }
