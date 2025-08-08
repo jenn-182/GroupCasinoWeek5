@@ -63,27 +63,18 @@ public class RouletteGame implements GameInterface {
             
             while (true) {
                 try {
+                    // Clean, simple prompt
                     System.out.println("Which bet will you choose? (or 'done' to spin)");
-                    
-                    if (scanner == null) {
-                        System.out.println("ERROR: Scanner is null!");
-                        return;
-                    }
+                    System.out.println("Examples: RED, 7, 1-2, 1-2-3, 1-2-4-5, TOPLINE");
                     
                     if (!scanner.hasNext()) {
                         Thread.sleep(100);
                         continue;
                     }
                     
-                    String betType = scanner.next();
+                    String betInput = scanner.next().toUpperCase().trim();
                     
-                    if (betType == null) {
-                        continue;
-                    }
-                    
-                    betType = betType.toUpperCase().trim();
-
-                    if (betType.equals("DONE")) {
+                    if (betInput.equals("DONE")) {
                         break;
                     }
 
@@ -91,155 +82,198 @@ public class RouletteGame implements GameInterface {
                     
                     if (!scanner.hasNextDouble()) {
                         System.out.println("Invalid amount! Please enter a number.");
-                        scanner.next(); // consume invalid input
+                        scanner.next();
                         continue;
                     }
                     
                     double amountBet = scanner.nextDouble();
 
+                    // Quick validation with helpful messages
                     if (amountBet <= 0) {
                         System.out.println("Invalid amount! Please enter a positive number.");
                         continue;
                     }
 
-
                     if (amountBet > playerCurrentMoneyAmount) {
-                        System.out.println("Not enough money! You have $" + String.format("%.2f", playerCurrentMoneyAmount) + 
-                                           " but need $" + String.format("%.2f", amountBet));
+                        System.out.println("Not enough money! You have $" + String.format("%.2f", playerCurrentMoneyAmount));
                         continue;
                     }
 
                     // Create bet
-                    RouletteBet bet;
-                    try {
-                        int number = Integer.parseInt(betType);
-                        bet = new RouletteBet(number, amountBet);
-                    } catch (NumberFormatException e) {
-                        bet = new RouletteBet(betType, amountBet);
-                    }
+                    RouletteBet bet = createBetFromInput(betInput, amountBet);
 
-                    if (!bet.validateBet()) {
-                        System.out.println("Invalid bet! Please check the options below:");
-                        tableLimits();
+                    if (bet == null || !bet.validateBet()) {
+                        System.out.println("Invalid bet! Type 'help' for betting options or try again.");
                         continue;
                     }
 
                     currentBets.add(bet);
-                    System.out.println("Bet placed: $" + amountBet + " on " + betType);
+                    
+                    //  Clean success message like your example
+                    System.out.println(" Bet placed: $" + String.format("%.1f", amountBet) + " on " + formatBetDisplay(bet));
+                    System.out.println(); // Clean spacing
 
                 } catch (Exception e) {
-                    System.out.println("ERROR in betting loop: " + e.getMessage());
-                    e.printStackTrace();
-                    return;
+                    System.out.println(" Invalid input! Please try again.");
+                    scanner.nextLine(); // Clear the scanner
+                    continue;
                 }
             }
             
             // Only proceed if we have bets
             if (currentBets.isEmpty()) {
-                System.out.println("No bets placed. Returning to game menu.");
+                System.out.println("No bets placed. 🤷‍♂️");
                 return;
             }
 
             // Spin the wheel
-            System.out.println("\n Spinning the wheel...");
+            System.out.println("\n 🎲 Spinning the wheel...");
             Thread.sleep(1000); // Dramatic pause
             
             RouletteNumber winner = wheel.spin();
             
             if (winner == null) {
-                System.out.println("ERROR: Wheel spin failed!");
+                System.out.println(" ERROR: Wheel spin failed!");
                 return;
             }
             
-            System.out.println("🎯 Winner: " + winner.getNumber() + " " + winner.getColor());
+            System.out.println("🎯 Winner: " + (winner.getNumber() == 37 ? "00" : winner.getNumber()) + " " + winner.getColor());
             System.out.println();
             
-            // Calculate results
+            // Calculate and show results
             double totalBets = 0;
             double totalPayouts = 0;
             
-            System.out.println("=== BET RESULTS ===");
+            System.out.println(" RESULTS:");
             
             for (RouletteBet bet : currentBets) {
                 totalBets += bet.getAmount();
                 
                 if (bet.checkWin(winner)) {
                     double betAmount = bet.getAmount();
-                    double payout = 0;
+                    double payout = bet.calculatePayout();
+                    totalPayouts += betAmount + payout;
                     
-                    // Calculate payout based on bet type
-                    if (bet.getBetType().equals("STRAIGHT_UP")) {
-                        payout = betAmount * 35;
-                    } else if (bet.getBetType().equals("RED") || bet.getBetType().equals("BLACK") 
-                               || bet.getBetType().equals("ODD") || bet.getBetType().equals("EVEN") 
-                               || bet.getBetType().equals("HIGH") || bet.getBetType().equals("LOW")) {
-                        payout = betAmount * 1;
-                    } else if (bet.getBetType().equals("1ST12") || bet.getBetType().equals("2ND12") 
-                               || bet.getBetType().equals("3RD12") || bet.getBetType().equals("COLUMN1") 
-                               || bet.getBetType().equals("COLUMN2") || bet.getBetType().equals("COLUMN3")) {
-                        payout = betAmount * 2;
-                    }
-                    
-                    totalPayouts += betAmount + payout; // Original bet + winnings
-                    
-                    if (bet.getBetType().equals("STRAIGHT_UP")) {
-                        System.out.println("✅ WIN! Your number " + bet.getNumberBet() + " bet pays $" + (betAmount + payout));
-                    } else {
-                        System.out.println("✅ WIN! Your " + bet.getBetType() + " bet pays $" + (betAmount + payout));
-                    }
+                    System.out.println("✅ WIN! " + formatBetDisplay(bet) + " pays $" + 
+                                       String.format("%.2f", betAmount + payout));
                 } else {
-                    if (bet.getBetType().equals("STRAIGHT_UP")) {
-                        System.out.println("❌ LOSE: Your number " + bet.getNumberBet() + " bet lost $" + bet.getAmount());
-                    } else {
-                        System.out.println("❌ LOSE: Your " + bet.getBetType() + " bet lost $" + bet.getAmount());
-                    }
+                    System.out.println("❌ LOSE: " + formatBetDisplay(bet) + " (-$" + 
+                                       String.format("%.2f", bet.getAmount()) + ")");
                 }
             }
             
-            // Update money: subtract all bets, add back payouts for winners
+            // Update balance and show summary
             playerCurrentMoneyAmount = playerCurrentMoneyAmount - totalBets + totalPayouts;
-            
-            // Show round summary
             double netResult = totalPayouts - totalBets;
+            
             System.out.println();
-            System.out.println("=== ROUND RESULTS ===");
-            System.out.println("Total Bets: $" + String.format("%.2f", totalBets));
-            System.out.println("Total Payouts: $" + String.format("%.2f", totalPayouts));
             if (netResult > 0) {
-                System.out.println("Net Result: +$" + String.format("%.2f", netResult) + " ");
+                System.out.println(" You won $" + String.format("%.2f", netResult) + "!");
             } else if (netResult < 0) {
-                System.out.println("Net Result: -$" + String.format("%.2f", Math.abs(netResult)) + " ");
+                System.out.println(" You lost $" + String.format("%.2f", Math.abs(netResult)));
             } else {
-                System.out.println("Net Result: $0.00 (Break even)");
-            }
-            System.out.println("New Balance: $" + String.format("%.2f", playerCurrentMoneyAmount));
-            System.out.println("====================");
-            
-            // Save bets for next round's display
-            try {
-                // Save bets for next round's display
-                if (previousBets != null && currentBets != null) {
-                    previousBets.clear();
-                    previousBets.addAll(currentBets);
-                }
-            } catch (Exception e) {
-                System.out.println("Error saving previous bets: " + e.getMessage());
+                System.out.println(" Break even!");
             }
             
+            System.out.println(" New Balance: $" + String.format("%.2f", playerCurrentMoneyAmount));
+            System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            System.out.println();
+            
+            // Save bets for next round
+            if (previousBets != null && currentBets != null) {
+                previousBets.clear();
+                previousBets.addAll(currentBets);
+            }
         } catch (Exception e) {
             System.out.println("ERROR in playRound: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
+    //  NEW: Streamlined betting info (shown once)
+    private void showStreamlinedBettingInfo() {
+        System.out.println(" Your Balance: $" + String.format("%.2f", playerCurrentMoneyAmount));
+        System.out.println(" Minimum bet: $10 | Maximum: $5000");
+        System.out.println();
+        
+        // Show previous bets if any (compact format)
+        if (previousBets != null && !previousBets.isEmpty()) {
+            System.out.println(" Last round: ");
+            for (RouletteBet bet : previousBets) {
+                if (bet != null) {
+                    System.out.println("   $" + String.format("%.0f", bet.getAmount()) + " on " + formatBetDisplay(bet));
+                }
+            }
+            System.out.println();
+        }
+    }
+
+    //  NEW: Simplified bet creation
+    private RouletteBet createBetFromInput(String input, double amount) {
+        // Handle help command
+        if (input.equals("HELP")) {
+            showDetailedHelp();
+            return null;
+        }
+        
+        // Try inside bets first
+        if (isInsideBetInput(input)) {
+            RouletteBet bet = parseInsideBet(input, amount);
+            if (bet != null) return bet;
+            
+            // Try single number
+            try {
+                int number = Integer.parseInt(input);
+                if (number == -1) number = 37;
+                return new RouletteBet(number, amount);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        
+        // Handle outside bets
+        return new RouletteBet(input, amount);
+    }
+
+    // NEW: Show detailed help only when requested
+    private void showDetailedHelp() {
+        System.out.println();
+        System.out.println(" ROULETTE BETTING GUIDE:");
+        System.out.println();
+        System.out.println(" SINGLE NUMBERS:");
+        System.out.println("   7, 23, 0, -1 (for 00) → Pays 35:1");
+        System.out.println();
+        System.out.println(" INSIDE BETS:");
+        System.out.println("   1-2 (split) → Pays 17:1");
+        System.out.println("   1-2-3 (street) → Pays 11:1");  
+        System.out.println("   1-2-4-5 (corner) → Pays 8:1");
+        System.out.println("   1-2-3-4-5-6 (double street) → Pays 5:1");
+        System.out.println("   TOPLINE → Pays 6:1");
+        System.out.println();
+        System.out.println(" OUTSIDE BETS:");
+        System.out.println("   RED, BLACK, ODD, EVEN, HIGH, LOW → Pays 1:1");
+        System.out.println("   1ST12, 2ND12, 3RD12 → Pays 2:1");
+        System.out.println("   COLUMN1, COLUMN2, COLUMN3 → Pays 2:1");
+        System.out.println();
+    }
+
     private void showBettingMenu() {
         System.out.println("=== BETTING OPTIONS ===");
-        System.out.println("Numbers: 0-36 (or -1 for 00) - Pays 35:1");
-        System.out.println("Colors: RED, BLACK - Pays 1:1");
-        System.out.println("Evens: ODD, EVEN - Pays 1:1");
-        System.out.println("Ranges: HIGH, LOW - Pays 1:1");
-        System.out.println("Dozens: 1ST12, 2ND12, 3RD12 - Pays 2:1");
-        System.out.println("Columns: COLUMN1, COLUMN2, COLUMN3 - Pays 2:1");
+        System.out.println("SINGLE NUMBER: Numbers: 0-36 (or -1 for 00) - Pays 35:1");
+        System.out.println();
+        System.out.println("INSIDE BETS");
+        System.out.println("  SPLIT: Two adjacent numbers (1-2) - Pays 17:1");
+        System.out.println("  STREET: Three numbers in row (1-2-3) - Pays 11:1");
+        System.out.println("  CORNER: Four numbers (1-2-4-5) - Pays 8:1");
+        System.out.println("  DOUBLE STREET: Six numbers (1-2-3-4-5-6) - Pays 5:1");
+        System.out.println("  TOP LINE: 0-00-1-2-3 - Pays 6:1");
+        System.out.println();
+        System.out.println("OUTSIDE BETS:");
+        System.out.println("  Colors: RED, BLACK - Pays 1:1");
+        System.out.println("  Evens: ODD, EVEN - Pays 1:1");
+        System.out.println("  Ranges: HIGH, LOW - Pays 1:1");
+        System.out.println("  Dozens: 1ST12, 2ND12, 3RD12 - Pays 2:1");
+        System.out.println("  Columns: COLUMN1, COLUMN2, COLUMN3 - Pays 2:1");
         System.out.println("========================");
     
         // Add null checks for previous bets
@@ -251,7 +285,7 @@ public class RouletteGame implements GameInterface {
                         if (bet.getBetType() != null && bet.getBetType().equals("STRAIGHT_UP")) {
                             System.out.println("$" + bet.getAmount() + " on number " + bet.getNumberBet());
                         } else if (bet.getBetType() != null) {
-                            System.out.println("$" + bet.getAmount() + " on " + bet.getBetType());
+                            System.out.println("$" + bet.getAmount() + " on " + formatBetDisplay(bet));
                         } else {
                             System.out.println("$" + bet.getAmount() + " on unknown bet type");
                         }
@@ -372,6 +406,171 @@ public class RouletteGame implements GameInterface {
             } else if (difference < 0) {
                 currentPlayer.getAccount().withdraw(Math.abs(difference));
             }
+        }
+    }
+
+    private boolean isInsideBetInput(String input) {
+        // Check if input contains dashes (indicating multi-number bet)
+        if (input.contains("-")) {
+            return true;
+        }
+        // if special inside bet
+        if (input.equalsIgnoreCase("TOPLINE") || input.equalsIgnoreCase("TOP-LINE")) {
+            return true;
+        }
+        // Check if single number
+        try {
+            int number = Integer.parseInt(input);
+            return (number >= -1 && number <= 36);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+    }
+
+    private RouletteBet parseInsideBet(String input, double amount) {
+        input = input.toUpperCase().trim();
+
+        //Hanndles TOP LINE
+        if (input.equals("TOPLINE") || input.equals("TOP-LINE")) {
+            int[] numbers = {0, 37, 1, 2, 3};
+            return new RouletteBet("TOP_LINE", numbers, amount);
+        }
+
+        //Handles dashed number(mulitple bets)
+        if (input.contains("-")) {
+            String[] parts = input.split("-");
+            int[] numbers = new int[parts.length];
+
+            try{
+                for (int i =0; i < parts.length; i++) {
+                    if (parts[i].equals("00")) {
+                        numbers[i] = 37; //00 = 37
+                    } else {
+                        numbers[i] = Integer.parseInt(parts[i]);
+                    }
+                }
+
+                // Bet type based on number count and validate
+                String betType = determineBetType(numbers);
+                if (betType != null && validateNumberCombination(numbers, betType)) {
+                    return new RouletteBet(betType, numbers, amount);
+                }
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
+    }    
+
+    private String determineBetType(int[] numbers) {
+        switch (numbers.length) {
+            case 2:
+                return "SPLIT";
+            case 3:
+                return "STREET";
+            case 4:
+                return "CORNER";
+            case 6:
+                return "DOUBLE_STREET";
+            default: 
+                return null;
+        }
+    }
+
+    private boolean validateNumberCombination(int[] numbers, String betType) {
+        //Apparetnly you can sort for easier validation, GTK
+        java.util.Arrays.sort(numbers);
+
+        switch(betType) {
+            case "SPLIT":
+                return validateSplit(numbers);
+            case "STREET":
+                return validateStreet(numbers);
+            case "CORNER":
+                return validateCorner(numbers);
+            case "DOUBLE_STREET":
+                return validateDoubleStreet(numbers);
+            default:
+                return false;
+        }
+    }
+
+    private boolean validateSplit(int[] numbers) {
+        if (numbers.length != 2) return false;
+
+        int a = numbers[0], b = numbers[1];
+
+        //Handle 0 and 00 split
+        if ((a == 0 && b == 37) || (a == 37 && b == 0)) return true;
+
+        //Horizontal splits (adjacent in same row)
+        if (Math.abs(a - b) == 1 && a / 3 == b / 3) return true;
+
+        //Vertical splits (one # above/below)
+        if (Math.abs(a - b) == 3) return true;
+
+        return false;
+    }
+
+    private boolean validateStreet(int[] numbers) {
+        if (numbers.length != 3) return false;
+
+        // Street must be three consecutive numbers in same row
+        int min = numbers[0];
+        return (numbers[1] == min + 1) && (numbers[2] == min + 2) && (min % 3 == 1);
+    }
+
+    private boolean validateCorner(int[] numbers) {
+        if (numbers.length != 4) return false;
+
+        //Corner must form a 2x2 square on the layout
+        java.util.Arrays.sort(numbers);
+        int a = numbers[0], b = numbers[1], c = numbers[2], d = numbers[3];
+
+        //check valid corner pattern
+        return (b == a + 1) && (c == a +3) && (d == a + 4) && (a % 3 != 0);
+    }
+
+    private boolean validateDoubleStreet(int[] numbers) {
+        if (numbers.length != 6) return false;
+
+        java.util.Arrays.sort(numbers);
+        //check if 1st three is street
+        if (!validateStreet(new int[]{numbers[0], numbers[1], numbers[2]})) return false;
+        //check if last three is street
+        if (!validateStreet(new int[]{numbers[3], numbers[4], numbers[5]})) return false;
+
+        return numbers[3] == numbers[2] + 1;
+    }
+
+    private void showInsideBetExamples() {
+        System.out.println("Inside bet examples:");
+        System.out.println(" Split: 1-2, 4-5, 0-00");
+        System.out.println(" Street: 1-2-3, 7-8-9");
+        System.out.println(" Corner: 1-2-4-5, 8-9-11-12");
+        System.out.println(" Double Street: 1-2-3-4-5-6");
+        System.out.println(" Top line: TOPLINE");
+    }
+
+    // ENHANCED: Better bet display formatting
+    private String formatBetDisplay(RouletteBet bet) {
+        if (bet.getBetType().equals("STRAIGHT_UP")) {
+            int num = bet.getNumberBet();
+            return num == 37 ? "00" : String.valueOf(num);
+        } else if (bet.getBetType().equals("SPLIT") || bet.getBetType().equals("CORNER") ||
+                   bet.getBetType().equals("STREET") || bet.getBetType().equals("DOUBLE_STREET")) {
+            StringBuilder sb = new StringBuilder();
+            int[] numbers = bet.getNumbers();
+            for (int i = 0; i < numbers.length; i++) {
+                if (i > 0) sb.append("-");
+                sb.append(numbers[i] == 37 ? "00" : numbers[i]);
+            }
+            return sb.toString() + " (" + bet.getBetType() + ")";
+        } else if (bet.getBetType().equals("TOP_LINE")) {
+            return "TOPLINE";
+        } else {
+            return bet.getBetType();
         }
     }
 }
