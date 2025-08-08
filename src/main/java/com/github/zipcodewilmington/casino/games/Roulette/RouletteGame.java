@@ -2,9 +2,12 @@ package com.github.zipcodewilmington.casino.games.Roulette;
 
 import com.github.zipcodewilmington.casino.GameInterface;
 import com.github.zipcodewilmington.casino.Player;
+import com.github.zipcodewilmington.casino.CasinoAccount;
 import java.util.Scanner;
 import java.util.List;
+import java.util.Map;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class RouletteGame implements GameInterface {
     Roulette wheel;
@@ -12,7 +15,11 @@ public class RouletteGame implements GameInterface {
     List<RouletteBet> currentBets;
     List<RouletteBet> previousBets;  
     Scanner scanner = new Scanner(System.in);
-    private Player currentPlayer;  
+    private Player currentPlayer;
+    private List<Player> activePlayers;
+    private Map<Player, List<RouletteBet>> playerBets;
+    private Map<Player, List<RouletteBet>> previousPlayerBets;
+    private boolean isMultiplayer;  
 
     public RouletteGame() {
         try {
@@ -21,6 +28,10 @@ public class RouletteGame implements GameInterface {
             this.previousBets = new ArrayList<>();
             this.scanner = new Scanner(System.in);
             this.wheel.createWheel();
+            this.activePlayers = new ArrayList<>();
+            this.playerBets = new HashMap<>();
+            this.previousPlayerBets = new HashMap<>();
+            this.isMultiplayer = false;
         } catch (Exception e) {
             System.out.println("ERROR in constructor: " + e.getMessage());
             e.printStackTrace();
@@ -33,7 +44,11 @@ public class RouletteGame implements GameInterface {
         this.playerCurrentMoneyAmount = PlayerCurrentMoneyAmount;
         this.currentBets = currentBets;
         this.previousBets = new ArrayList<>();  
-        this.scanner = new Scanner(System.in);  
+        this.scanner = new Scanner(System.in);
+        this.activePlayers = new ArrayList<>();
+        this.playerBets = new HashMap<>();
+        this.previousPlayerBets = new HashMap<>();
+        this.isMultiplayer = false;  
     }
 
     public void playGame() {
@@ -396,6 +411,32 @@ public class RouletteGame implements GameInterface {
         updatePlayerBalance();
     }
 
+    public void launchMultiplayer(List<Player> players) {
+        if (players.size() < 2) {
+            System.out.println("Need at least 2 Players for multiplayer!");
+            return;
+        }
+
+        this.activePlayers = new ArrayList<>(players);
+        this.isMultiplayer = true;
+
+        for (Player player : activePlayers) {
+            playerBets.put(player, new ArrayList<>());
+            previousPlayerBets.put(player, new ArrayList<>());
+        }
+
+        System.out.println("The more, the merrier!");
+        System.out.print("Players: ");
+        for (int i =0; i < players.size(); i++) {
+            System.out.print(players.get(i).getUsername());
+            if (i < players.size() - 1) System.out.print(", ");
+        }
+        System.out.println();
+        System.out.println();
+
+        playMultiplayerGame();
+    }
+
     private void updatePlayerBalance() {
         if (currentPlayer != null) {
             double originalBalance = currentPlayer.getAccount().getBalance();
@@ -572,5 +613,246 @@ public class RouletteGame implements GameInterface {
         } else {
             return bet.getBetType();
         }
+    }
+
+    private void playMultiplayerGame() {
+        while (true) {
+            try {
+                playMultiplayerRound();
+
+                System.out.println("One more? (y/n)");
+                if (!scanner.next().toLowerCase().startsWith("y")) {
+                    break;
+                }
+                
+            } catch (Exception e) {
+                System.out.println("Error in multiplayer game:" + e.getMessage());
+                break;
+            }
+        }
+        
+        showFinalBalances();
+    }
+
+    private void playMultiplayerRound() {
+        try{
+            //Clear player bets
+            for (Player player : activePlayers) {
+                playerBets.get(player).clear();
+            }
+
+            System.out.println("New Round! Everyone, Place your bets!");
+            System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+            //Collections
+            for (Player player : activePlayers) {
+                collectBetsFromPlayer(player);
+            }
+
+            //Checks if any bets were placed
+            boolean anyBets = false;
+            for (List<RouletteBet> bets : playerBets.values()) {
+                if (!bets.isEmpty()) {
+                    anyBets = true;
+                    break;
+                }
+            }
+                
+            if (!anyBets) {
+                System.out.println("No bets placed!");
+                return;
+            }
+
+            spinForAllPlayers();
+            
+        } catch (Exception e) {
+            System.out.println("Error in multiplayer round:" + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void collectBetsFromPlayer(Player player) {
+        System.out.println();
+        System.out.println(player.getUsername().toUpperCase() + "'S TURN");
+        System.out.println(" Balance: $" + String.format("%.2f", player.getAccount().getBalance()));
+        
+        // Show previous bets for this player
+        List<RouletteBet> prevBets = previousPlayerBets.get(player);
+        if (prevBets != null && !prevBets.isEmpty()) {
+            System.out.println("Last round: ");
+            for (RouletteBet bet : prevBets) {
+                System.out.println("   $" + String.format("%.0f", bet.getAmount()) + " on " + formatBetDisplay(bet));
+            }
+        }
+        
+        System.out.println();
+        System.out.println("Place your bets!");
+
+        List<RouletteBet> currentPlayerBets = playerBets.get(player);
+        
+        while (true) {
+            try {
+                System.out.println("Which bet will you choose? (or 'done' to spin)");
+                System.out.println("Examples: RED, 7, 1-2, 1-2-3, 1-2-4-5, TOPLINE");
+                
+                String betInput = scanner.next().toUpperCase().trim();
+                
+                if (betInput.equals("DONE")) {
+                    break;
+                }
+
+                System.out.println("How much do you want to bet?");
+                
+                if (!scanner.hasNextDouble()) {
+                    System.out.println(" Invalid amount! Please enter a number.");
+                    scanner.next();
+                    continue;
+                }
+                
+                double amountBet = scanner.nextDouble();
+
+                if (amountBet <= 0) {
+                    System.out.println(" Invalid amount! Please enter a positive number.");
+                    continue;
+                }
+
+                if (amountBet > player.getAccount().getBalance()) {
+                    System.out.println(" Not enough money! You have $" + 
+                        String.format("%.2f", player.getAccount().getBalance()));
+                    continue;
+                }
+
+                RouletteBet bet = createBetFromInput(betInput, amountBet);
+
+                if (bet == null || !bet.validateBet()) {
+                    System.out.println(" Invalid bet! Type 'help' for betting options or try again.");
+                    continue;
+                }
+
+                currentPlayerBets.add(bet);
+                
+                System.out.println(" Bet placed: $" + String.format("%.1f", amountBet) + " on " + formatBetDisplay(bet));
+                System.out.println();
+
+            } catch (Exception e) {
+                System.out.println(" Invalid input! Please try again.");
+                scanner.nextLine();
+                continue;
+            }
+        }
+        
+        if (currentPlayerBets.isEmpty()) {
+            System.out.println(player.getUsername() + " placed no bets this round.");
+        } else {
+            System.out.println(player.getUsername() + " placed " + currentPlayerBets.size() + " bet(s). ");
+        }
+    }
+
+    private void spinForAllPlayers() {
+        System.out.println();
+        System.out.println(" SPINNING THE WHEEL FOR ALL PLAYERS...");
+        
+        try { 
+            Thread.sleep(2000); 
+        } catch (InterruptedException e) {}
+        
+        RouletteNumber winner = wheel.spin();
+        
+        if (winner == null) {
+            System.out.println(" ERROR: Wheel spin failed!");
+            return;
+        }
+        
+        System.out.println("🎯 WINNER: " + (winner.getNumber() == 37 ? "00" : winner.getNumber()) + " " + winner.getColor());
+        System.out.println();
+        System.out.println(" RESULTS FOR ALL PLAYERS:");
+        System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        
+        // Process results for each player
+        for (Player player : activePlayers) {
+            processPlayerResults(player, winner);
+        }
+    }
+
+    private void processPlayerResults(Player player, RouletteNumber winner) {
+        List<RouletteBet> bets = playerBets.get(player);
+        
+        if (bets.isEmpty()) {
+            System.out.println("👤 " + player.getUsername() + ": No bets placed");
+            return;
+        }
+        
+        System.out.println();
+        System.out.println("👤 " + player.getUsername().toUpperCase() + ":");
+        
+        double totalBets = 0;
+        double totalPayouts = 0;
+        
+        for (RouletteBet bet : bets) {
+            totalBets += bet.getAmount();
+            
+            if (bet.checkWin(winner)) {
+                double betAmount = bet.getAmount();
+                double payout = bet.calculatePayout();
+                totalPayouts += betAmount + payout;
+                
+                System.out.println("   ✅ WIN! " + formatBetDisplay(bet) + " pays $" + 
+                                   String.format("%.2f", betAmount + payout));
+            } else {
+                System.out.println("   ❌ LOSE: " + formatBetDisplay(bet) + " (-$" + 
+                                   String.format("%.2f", bet.getAmount()) + ")");
+            }
+        }
+        
+        // USE EXISTING METHODS (but creates console output)
+        CasinoAccount account = player.getAccount();
+        
+        // Withdraw total bets
+        if (totalBets > 0) {
+            account.withdraw(totalBets);
+        }
+        
+        // Deposit winnings if any
+        if (totalPayouts > 0) {
+            account.deposit(totalPayouts);
+        }
+        
+        double netResult = totalPayouts - totalBets;
+        
+        if (netResult > 0) {
+            System.out.println("    Won $" + String.format("%.2f", netResult) + "!");
+        } else if (netResult < 0) {
+            System.out.println("    Lost $" + String.format("%.2f", Math.abs(netResult)));
+        } else {
+            System.out.println("    Break even!");
+        }
+        
+        System.out.println("    New Balance: $" + String.format("%.2f", account.getBalance()));
+        
+        // Save bets for next round
+        List<RouletteBet> prevBets = previousPlayerBets.get(player);
+        prevBets.clear();
+        prevBets.addAll(bets);
+    }
+
+    private void showFinalBalances() {
+        System.out.println();
+        System.out.println(" FINAL BALANCES:");
+        System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        
+        // Sort players by balance (highest first)
+        activePlayers.sort((p1, p2) -> 
+            Double.compare(p2.getAccount().getBalance(), p1.getAccount().getBalance()));
+        
+        for (int i = 0; i < activePlayers.size(); i++) {
+            Player player = activePlayers.get(i);
+            String medal = i == 0 ? "🥇" : i == 1 ? "🥈" : i == 2 ? "🥉" : "👤";
+            
+            System.out.println(medal + " " + player.getUsername() + ": $" + 
+                String.format("%.2f", player.getAccount().getBalance()));
+        }
+        
+        System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        System.out.println("Thanks for playing multiplayer roulette!");
     }
 }

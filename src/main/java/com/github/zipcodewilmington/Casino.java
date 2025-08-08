@@ -153,6 +153,37 @@ public class Casino implements Runnable {
     public void playRouletteGame(Player player) {
         try {
             console.println("Welcome to the Roulette Table, " + player.getUsername() + "!");
+            
+            // ADD GAME MODE SELECTION
+            console.println(""); 
+            console.println("ROULETTE GAME MODES:");
+            console.println("1. Single Player");
+            console.println("2. Multiplayer (2-6 players)");
+            console.println("");  
+            
+            int choice = console.getIntegerInput("Choose mode (1 or 2): ");
+            
+            switch (choice) {
+                case 1:
+                    playSinglePlayerRoulette(player);
+                    break;
+                case 2:
+                    playMultiplayerRoulette(player);
+                    break;
+                default:
+                    console.println("Invalid choice! Defaulting to single player.");
+                    playSinglePlayerRoulette(player);
+                    break;
+            }
+            
+        } catch (Exception e) {
+            console.println("Error in Roulette game: " + e.getMessage());
+        }
+    }
+
+    // EXTRACT YOUR EXISTING SINGLE PLAYER CODE
+    private void playSinglePlayerRoulette(Player player) {
+        try {
             console.println("Transferring your casino balance to the Roulette table...");
 
             // Create the roulette wheel
@@ -172,7 +203,7 @@ public class Casino implements Runnable {
                     currentBets);
 
             // This runs the COMPLETE RouletteGame with ALL original prompts:
-            game.playGame();
+            game.launch(player);  // Use launch() method for single player
 
             // Sync the game results back to the casino account
             double finalAmount = game.getCurrentBalance();
@@ -181,12 +212,10 @@ public class Casino implements Runnable {
             // Update the player's casino account
             if (difference > 0) {
                 player.getAccount().deposit(difference);
-                console.println(
-                        "\nNice job! Your casino account gained $" + String.format("%.2f", difference));
+                console.println("\nNice job! Your casino account gained $" + String.format("%.2f", difference));
             } else if (difference < 0) {
                 player.getAccount().withdraw(Math.abs(difference));
-                console.println(
-                        "\nTough session! Your casino account lost $" + String.format("%.2f", Math.abs(difference)));
+                console.println("\nTough session! Your casino account lost $" + String.format("%.2f", Math.abs(difference)));
             } else {
                 console.println("\nEven session - no change to your casino account!");
             }
@@ -201,8 +230,137 @@ public class Casino implements Runnable {
             console.getStringInput("Press ENTER to continue...");
 
         } catch (Exception e) {
-            console.println("Error in Roulette game: " + e.getMessage());
+            console.println("Error in single player Roulette: " + e.getMessage());
         }
+    }
+
+    // ADD NEW MULTIPLAYER METHOD
+    private void playMultiplayerRoulette(Player hostPlayer) {
+        try {
+            console.println("MULTIPLAYER ROULETTE SETUP");
+            console.println("Host: " + hostPlayer.getUsername());
+            
+            int numPlayers = console.getIntegerInput("How many total players? (2-6): ");
+            if (numPlayers < 2 || numPlayers > 6) {
+                console.println("Invalid number! Must be 2-6 players.");
+                return;
+            }
+            
+            List<Player> players = new ArrayList<>();
+            players.add(hostPlayer); // Add the host first
+            console.println("Added " + hostPlayer.getUsername() + " as host");
+            
+            // Get additional players
+            for (int i = 1; i < numPlayers; i++) {
+                Player additionalPlayer = getAdditionalPlayer(i + 1);
+                if (additionalPlayer != null) {
+                    players.add(additionalPlayer);
+                    console.println("Added " + additionalPlayer.getUsername() + " (Balance: $" + 
+                        String.format("%.2f", additionalPlayer.getAccount().getBalance()) + ")");
+                } else {
+                    console.println("Failed to add player " + (i + 1));
+                }
+            }
+            
+            if (players.size() >= 2) {
+                console.println("\nStarting Multiplayer Roulette with " + players.size() + " players!");
+                
+                // Create and launch multiplayer roulette
+                com.github.zipcodewilmington.casino.games.Roulette.RouletteGame game = 
+                    new com.github.zipcodewilmington.casino.games.Roulette.RouletteGame();
+                
+                game.launchMultiplayer(players);
+                
+                console.println("\nMultiplayer Roulette session completed!");
+                console.println("All player balances have been updated.");
+                
+                // Add game entries for all players
+                for (Player player : players) {
+                    player.getAccount().addGameEntry("Multiplayer Roulette Session");
+                }
+                
+            } else {
+                console.println("Not enough players for multiplayer! Need at least 2.");
+            }
+            
+            console.getStringInput("Press ENTER to continue...");
+            
+        } catch (Exception e) {
+            console.println("Error in multiplayer Roulette: " + e.getMessage());
+        }
+    }
+
+    // HELPER METHOD TO GET ADDITIONAL PLAYERS
+    private Player getAdditionalPlayer(int playerNumber) {
+        try {
+            // Show available players (similar to your Craps implementation)
+            List<CasinoAccount> allAccounts = new ArrayList<>(accountManager.loadAccounts().values());
+            
+            console.println("\nAvailable players for Player " + playerNumber + ":");
+            int idx = 1;
+            Map<Integer, CasinoAccount> indexToAccount = new HashMap<>();
+            
+            for (CasinoAccount account : allAccounts) {
+                console.println(idx + ": " + account.getUsername() + " (Balance: $" + 
+                    String.format("%.2f", account.getBalance()) + ")");
+                indexToAccount.put(idx, account);
+                idx++;
+            }
+            
+            console.println((idx) + ": Create new player");
+            
+            int selection = console.getIntegerInput("Select player (or " + idx + " for new): ");
+            
+            if (selection == idx) {
+                // Create new player
+                return createNewPlayer();
+            } else {
+                // Use existing player
+                CasinoAccount selectedAccount = indexToAccount.get(selection);
+                if (selectedAccount != null) {
+                    String password = console.getStringInput("Enter password for " + selectedAccount.getUsername() + ": ");
+                    CasinoAccount verifiedAccount = accountManager.getAccount(selectedAccount.getUsername(), password);
+                    
+                    if (verifiedAccount != null) {
+                        return verifiedAccount.getPlayer();
+                    } else {
+                        console.println("Incorrect password!");
+                        return null;
+                    }
+                }
+            }
+            
+        } catch (Exception e) {
+            console.println("Error getting additional player: " + e.getMessage());
+        }
+        
+        return null;
+    }
+
+    // HELPER METHOD TO CREATE NEW PLAYER
+    private Player createNewPlayer() {
+        try {
+            String username = console.getStringInput("Enter username for new player: ");
+            String password = console.getStringInput("Enter password for new player: ");
+            double startingBalance = console.getDoubleInput("Enter starting balance: $");
+            
+            if (startingBalance < 10) {
+                console.println("Minimum starting balance is $10!");
+                return null;
+            }
+            
+            // Create new account
+            CasinoAccount newAccount = accountManager.createAccount(username, password);
+            if (newAccount != null) {
+                newAccount.deposit(startingBalance);
+                return newAccount.getPlayer();
+            }
+            
+        } catch (Exception e) {
+            console.println("Error creating new player: " + e.getMessage());
+        }
+        
+        return null;
     }
 
     public void playPokerGame(Player player) {
@@ -221,7 +379,7 @@ public class Casino implements Runnable {
     public void playCrapsGame(Player loggedInPlayer) {
         Craps craps = new Craps();
 
-        // Add the logged-in player first
+        // Add the loggedInPlayer to the game
         craps.add(loggedInPlayer);
 
         // Show all available players
