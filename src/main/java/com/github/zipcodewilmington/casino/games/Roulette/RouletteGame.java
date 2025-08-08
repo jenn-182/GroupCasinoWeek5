@@ -137,13 +137,13 @@ public class RouletteGame implements GameInterface {
             
             // Only proceed if we have bets
             if (currentBets.isEmpty()) {
-                System.out.println("No bets placed. 🤷‍♂️");
+                System.out.println("No bets placed.");
                 return;
             }
 
             // Spin the wheel
-            System.out.println("\n 🎲 Spinning the wheel...");
-            Thread.sleep(1000); // Dramatic pause
+            System.out.println("\nSpinning the wheel...");
+            Thread.sleep(1000); 
             
             RouletteNumber winner = wheel.spin();
             
@@ -152,7 +152,10 @@ public class RouletteGame implements GameInterface {
                 return;
             }
             
-            System.out.println("🎯 Winner: " + (winner.getNumber() == 37 ? "00" : winner.getNumber()) + " " + winner.getColor());
+            // ADD THIS LINE - Show table with winner highlighted
+            showTableWithWinner(winner);
+            
+            System.out.println("Winner: " + (winner.getNumber() == 37 ? "00" : winner.getNumber()) + " " + winner.getColor());
             System.out.println();
             
             // Calculate and show results
@@ -763,7 +766,10 @@ public class RouletteGame implements GameInterface {
             return;
         }
         
-        System.out.println("🎯 WINNER: " + (winner.getNumber() == 37 ? "00" : winner.getNumber()) + " " + winner.getColor());
+        // ADD THIS LINE - Show table with winner highlighted
+        showTableWithWinner(winner);
+        
+        System.out.println(" WINNER: " + (winner.getNumber() == 37 ? "00" : winner.getNumber()) + " " + winner.getColor());
         System.out.println();
         System.out.println(" RESULTS FOR ALL PLAYERS:");
         System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -778,12 +784,12 @@ public class RouletteGame implements GameInterface {
         List<RouletteBet> bets = playerBets.get(player);
         
         if (bets.isEmpty()) {
-            System.out.println("👤 " + player.getUsername() + ": No bets placed");
+            System.out.println( player.getUsername() + ": No bets placed");
             return;
         }
         
         System.out.println();
-        System.out.println("👤 " + player.getUsername().toUpperCase() + ":");
+        System.out.println( player.getUsername().toUpperCase() + ":");
         
         double totalBets = 0;
         double totalPayouts = 0;
@@ -846,7 +852,7 @@ public class RouletteGame implements GameInterface {
         
         for (int i = 0; i < activePlayers.size(); i++) {
             Player player = activePlayers.get(i);
-            String medal = i == 0 ? "🥇" : i == 1 ? "🥈" : i == 2 ? "🥉" : "👤";
+            String medal = i == 0 ? "Gold" : i == 1 ? "Silver" : i == 2 ? "Bronze" : "👤";
             
             System.out.println(medal + " " + player.getUsername() + ": $" + 
                 String.format("%.2f", player.getAccount().getBalance()));
@@ -855,4 +861,210 @@ public class RouletteGame implements GameInterface {
         System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         System.out.println("Thanks for playing multiplayer roulette!");
     }
+
+    // Add this method to your RouletteGame class
+    private void showTableWithWinner(RouletteNumber winner) {
+        System.out.println("┌─── ROULETTE TABLE - WINNER HIGHLIGHTED ───┐");
+        System.out.println("│                                           │");
+        
+        // Top row with 0 and 00
+        System.out.printf("│        %s      %s                    │%n", 
+            highlightIfWinner(0, winner), highlightIfWinner(37, winner));
+        
+        System.out.println("│   ┌──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┐   │");
+        
+        // Row 3 (top)
+        System.out.printf("│   │%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│   │%n",
+            highlightIfWinner(3, winner), highlightIfWinner(6, winner), 
+            highlightIfWinner(9, winner), highlightIfWinner(12, winner),
+            highlightIfWinner(15, winner), highlightIfWinner(18, winner),
+            highlightIfWinner(21, winner), highlightIfWinner(24, winner),
+            highlightIfWinner(27, winner), highlightIfWinner(30, winner),
+            highlightIfWinner(33, winner), highlightIfWinner(36, winner));
+        
+        System.out.println("│   ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤   │");
+        
+        // Row 2 (middle)
+        System.out.printf("│   │%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│   │%n",
+            highlightIfWinner(2, winner), highlightIfWinner(5, winner),
+            highlightIfWinner(8, winner), highlightIfWinner(11, winner),
+            highlightIfWinner(14, winner), highlightIfWinner(17, winner),
+            highlightIfWinner(20, winner), highlightIfWinner(23, winner),
+            highlightIfWinner(26, winner), highlightIfWinner(29, winner),
+            highlightIfWinner(32, winner), highlightIfWinner(35, winner));
+        
+        System.out.println("│   ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤   │");
+        
+        // Row 1 (bottom)
+        System.out.printf("│   │%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│   │%n",
+            highlightIfWinner(1, winner), highlightIfWinner(4, winner),
+            highlightIfWinner(7, winner), highlightIfWinner(10, winner),
+            highlightIfWinner(13, winner), highlightIfWinner(16, winner),
+            highlightIfWinner(19, winner), highlightIfWinner(22, winner),
+            highlightIfWinner(25, winner), highlightIfWinner(28, winner),
+            highlightIfWinner(31, winner), highlightIfWinner(34, winner));
+        
+        System.out.println("│   └──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┘   │");
+        System.out.println("│      1ST12   2ND12   3RD12              │");
+        
+        // Outside bets with color highlighting
+        System.out.printf("│   ┌────┬────┬───┬───┬────┬────┐          │%n");
+        System.out.printf("│   │1-18│EVEN│%s│%s│ODD │19-36          │%n",
+            highlightIfColor("RED", winner), highlightIfColor("BLK", winner));
+        System.out.println("│   └────┴────┴───┴───┴────┴────┘          │");
+        System.out.println("└───────────────────────────────────────────┘");
+        System.out.println();
+    }
+
+    // Helper method to highlight winning numbers
+    private String highlightIfWinner(int number, RouletteNumber winner) {
+        if (winner == null) {
+            return String.format("%2d", number == 37 ? 0 : number); // Handle 00 display
+        }
+        
+        boolean isWinner = (number == 37 && winner.getNumber() == 37) || 
+                          (number != 37 && winner.getNumber() == number);
+        
+        if (isWinner) {
+            return number == 37 ? "★★" : String.format("★%d", number);
+        } else {
+            return number == 37 ? "00" : String.format("%2d", number);
+        }
+    }
+
+    // Helper method to highlight winning colors
+    private String highlightIfColor(String color, RouletteNumber winner) {
+        if (winner == null) return color;
+        
+        String winnerColor = winner.getColor().toUpperCase();
+        boolean matches = (color.equals("RED") && winnerColor.contains("RED")) ||
+                         (color.equals("BLK") && winnerColor.contains("BLACK"));
+        
+        return matches ? "★" + color.substring(1) : color;
+    }
 }
+
+
+// OPTION 1
+// private void showRouletteTable() {
+//     System.out.println("=== AMERICAN ROULETTE TABLE ===");
+//     System.out.println();
+//     System.out.println("        0     00");
+//     System.out.println("    ┌─────┬─────┐");
+//     System.out.println("    │  3  │  6  │  9 │ 12 │ 15 │ 18 │ 21 │ 24 │ 27 │ 30 │ 33 │ 36 │ 2:1");
+//     System.out.println("    ├─────┼─────┼────┼────┼────┼────┼────┼────┼────┼────┼────┼────┤");
+//     System.out.println("    │  2  │  5  │  8 │ 11 │ 14 │ 17 │ 20 │ 23 │ 26 │ 29 │ 32 │ 35 │ 2:1");
+//     System.out.println("    ├─────┼─────┼────┼────┼────┼────┼────┼────┼────┼────┼────┼────┤");
+//     System.out.println("    │  1  │  4  │  7 │ 10 │ 13 │ 16 │ 19 │ 22 │ 25 │ 28 │ 31 │ 34 │ 2:1");
+//     System.out.println("    └─────┴─────┴────┴────┴────┴────┴────┴────┴────┴────┴────┴────┘");
+//     System.out.println("         │  1ST 12  │  2ND 12  │  3RD 12  │");
+//     System.out.println("    ┌────┬────┬────┬────┬────┬────┬────┬────┐");
+//     System.out.println("    │1-18│EVEN│RED │BLCK│ ODD│19-36│");
+//     System.out.println("    └────┴────┴────┴────┴────┴────┘");
+//     System.out.println();
+// }
+
+// OPTION 2
+// Add this method to your RouletteGame class
+
+// private void showInteractiveTable(RouletteNumber winner) {
+//     System.out.println("=== ROULETTE TABLE - WINNER: " + 
+//         (winner.getNumber() == 37 ? "00" : winner.getNumber()) + " " + winner.getColor() + " ===");
+    
+//     // Top row (0 and 00)
+//     System.out.println("    ┌─────┬─────┐");
+//     System.out.printf("    │ %s │ %s │%n", 
+//         highlightNumber(0, winner), highlightNumber(37, winner));
+//     System.out.println("    ├─────┼─────┼────┬────┬────┬────┬────┬────┬────┬────┬────┬────┤");
+    
+//     // Main number grid
+//     for (int row = 3; row >= 1; row--) {
+//         System.out.print("    │     │     ");
+//         for (int col = 0; col < 12; col++) {
+//             int number = row + (col * 3);
+//             System.out.printf("│ %s ", highlightNumber(number, winner));
+//         }
+//         System.out.println("│ 2:1 │");
+        
+//         if (row > 1) {
+//             System.out.println("    │     │     ├────┼────┼────┼────┼────┼────┼────┼────┼────┼────┤     │");
+//         }
+//     }
+    
+//     // Bottom section
+//     System.out.println("    └─────┴─────┴────┴────┴────┴────┴────┴────┴────┴────┴────┴────┴─────┘");
+//     System.out.println("                │  1ST 12  │  2ND 12  │  3RD 12  │");
+//     System.out.println("           ┌────┬────┬────┬────┬────┬────┐");
+//     System.out.printf("           │1-18│EVEN│ %s │ %s │ ODD│19-36│%n", 
+//         highlightColor("RED", winner), highlightColor("BLCK", winner));
+//     System.out.println("           └────┴────┴───┴───┴────┴────┘");
+//     System.out.println();
+// }
+
+// private String highlightNumber(int number, RouletteNumber winner) {
+//     String display = (number == 37) ? "00" : String.format("%2d", number);
+    
+//     if (winner != null && 
+//         ((number == 37 && winner.getNumber() == 37) || 
+//          (number != 37 && winner.getNumber() == number))) {
+//         return "★" + display.substring(1); // Highlight winning number
+//     }
+//     return display;
+// }
+
+// private String highlightColor(String color, RouletteNumber winner) {
+//     if (winner != null && winner.getColor().toUpperCase().startsWith(color.substring(0, 3))) {
+//         return "★" + color.substring(1);
+//     }
+//     return color;
+// }
+
+// OPTION 3
+// //private void showCompactTable() {
+//     System.out.println("=== ROULETTE BETTING LAYOUT ===");
+//     System.out.println();
+//     System.out.println("    0   00");
+//     System.out.println("   ┌─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┐");
+//     System.out.println("   │3│6│9│12│15│18│21│24│27│30│33│36│C3");
+//     System.out.println("   ├─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┤");
+//     System.out.println("   │2│5│8│11│14│17│20│23│26│29│32│35│C2");
+//     System.out.println("   ├─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┤");
+//     System.out.println("   │1│4│7│10│13│16│19│22│25│28│31│34│C1");
+//     System.out.println("   └─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┘");
+//     System.out.println("    1st12  2nd12  3rd12");
+//     System.out.println("   ┌────┬────┬───┬───┬────┬────┐");
+//     System.out.println("   │1-18│EVEN│RED│BLK│ODD │19-36");
+//     System.out.println("   └────┴────┴───┴───┴────┴────┘");
+//     System.out.println();
+//     System.out.println("Betting Examples:");
+//     System.out.println("• Single: 7, 23, 0, -1 (for 00)");
+//     System.out.println("• Split: 1-2, 4-5 • Street: 1-2-3");
+//     System.out.println("• Corner: 1-2-4-5 • Column: COLUMN1");
+//     System.out.println();
+// }
+
+// // Add this method right after your showBettingMenu method
+// private void showBettingMenu() {
+//     showRouletteLayout(); // ✅ ADD THIS LINE
+    
+//     System.out.println("=== BETTING OPTIONS ===");
+//     // ... rest of your existing code
+// }
+
+// private void showRouletteLayout() {
+//     System.out.println("┌─── AMERICAN ROULETTE TABLE ───┐");
+//     System.out.println("│       0      00               │");
+//     System.out.println("│  ┌──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┐  │");
+//     System.out.println("│  │3 │6 │9 │12│15│18│21│24│27│30│33│36│  │");
+//     System.out.println("│  ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤  │");
+//     System.out.println("│  │2 │5 │8 │11│14│17│20│23│26│29│32│35│  │");
+//     System.out.println("│  ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤  │");
+//     System.out.println("│  │1 │4 │7 │10│13│16│19│22│25│28│31│34│  │");
+//     System.out.println("│  └──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┘  │");
+//     System.out.println("│     1ST12   2ND12   3RD12           │");
+//     System.out.println("│  ┌────┬────┬───┬───┬────┬────┐      │");
+//     System.out.println("│  │1-18│EVEN│RED│BLK│ODD │19-36      │");
+//     System.out.println("│  └────┴────┴───┴───┴────┴────┘      │");
+//     System.out.println("└───────────────────────────────────────┘");
+//     System.out.println();
+// }
