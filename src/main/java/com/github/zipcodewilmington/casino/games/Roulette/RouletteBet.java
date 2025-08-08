@@ -6,7 +6,7 @@ public class RouletteBet {
     private String betType;
     private int[] numbers; 
 
-    // Existing constructors...
+    
     public RouletteBet(int numberBet, double amountBet) {
         this.numberBet = numberBet;
         this.amountBet = amountBet;
@@ -79,11 +79,11 @@ public class RouletteBet {
         } else if (betType.equals("3RD12")) {
             return num >= 25 && num <= 36;
         } else if (betType.equals("COLUMN1")) {
-            return num % 3 == 1 && num >= 1 && num <= 34; // 1,4,7,10...34
+            return num % 3 == 1 && num >= 1 && num <= 34;
         } else if (betType.equals("COLUMN2")) {
-            return num % 3 == 2 && num >= 2 && num <= 35; // 2,5,8,11...35
+            return num % 3 == 2 && num >= 2 && num <= 35; 
         } else if (betType.equals("COLUMN3")) {
-            return num % 3 == 0 && num >= 3 && num <= 36; // 3,6,9,12...36
+            return num % 3 == 0 && num >= 3 && num <= 36; 
         }
 
         return false;
@@ -115,7 +115,6 @@ public class RouletteBet {
         } else if (betType.equals("TOP_LINE")) {
             return amountBet * 6; // 6:1
         }
-        // ... existing outside bet payouts ...
         else if (betType.equals("RED") || betType.equals("BLACK") ||
                 betType.equals("ODD") || betType.equals("EVEN") ||
                 betType.equals("HIGH") || betType.equals("LOW")) {
@@ -162,7 +161,6 @@ public class RouletteBet {
         return !isInsideBet();
     }
 
-    // Add this method to your RouletteBet class
 
     public boolean isTwoToOneBet() {
         // Dozen bets (pay 2:1)
