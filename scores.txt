@@ -14,3 +14,6 @@ josiah | Category: Computer Science | Score: 0
 jenn | Category: Computer Science | Score: 1
 josiah | Category: Computer Science | Score: 1
 younis | Category: Computer Science | Score: 0
+josiah | Category: Technology | Score: 0
+jenn | Category: Technology | Score: 1
+josiah | Category: Geography | Score: 2
