@@ -474,7 +474,9 @@ public class Casino implements Runnable {
             if (!playAgain.equals("yes")) {
                 keepPlaying = false;
                 console.println("Thanks for playing Craps!");
-                p.getAccount().addGameEntry("Craps session completed");
+                for (Player p : craps.getPlayers()) {
+                    p.getAccount().addGameEntry("Craps session completed");
+                }
             }
         }
     }
