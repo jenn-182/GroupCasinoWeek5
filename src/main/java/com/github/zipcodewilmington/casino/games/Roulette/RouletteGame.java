@@ -52,6 +52,7 @@ public class RouletteGame implements GameInterface {
     }
 
     // Multiplayer entry point
+    @Override
     public void launchMultiplayer(List<Player> players) {
         if (players.size() < 2) {
             System.out.println("Need at least 2 Players for multiplayer!");
@@ -413,7 +414,7 @@ public class RouletteGame implements GameInterface {
         System.out.println();
         System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         System.out.println();
-        System.out.println(ANSI_PURPLE+"Thanks for playing roulette!"+ANSI_RESET);
+        System.out.println(ANSI_PURPLE + "Thanks for playing roulette!" + ANSI_RESET);
     }
 
     private void flushScreen() {
@@ -615,12 +616,16 @@ public class RouletteGame implements GameInterface {
     // GameInterface required methods
     @Override
     public boolean add(Player player) {
-        return true;
+        if (!activePlayers.contains(player)) {
+            activePlayers.add(player);
+            return true;
+        }
+        return false;
     }
 
     @Override
     public boolean remove(Player player) {
-        return true;
+        return activePlayers.remove(player);
     }
 
     @Override
@@ -660,5 +665,10 @@ public class RouletteGame implements GameInterface {
             Thread.sleep(delayMillis);
         }
         System.out.println();
+    }
+
+    @Override
+    public void loadQuestionsFromFile(String filename) {
+        // does not use questions, so this can be left empty 
     }
 }

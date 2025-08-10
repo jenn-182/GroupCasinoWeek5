@@ -61,60 +61,60 @@ public class Craps implements GameInterface {
     // Method for displaying dice with ASCII art
     private void displayDice(int roll1, int roll2) {
         String[][] diceFaces = {
-            { // Face 1
-                " _______ ",
-                "|       |",
-                "|   o   |",
-                "|       |",
-                "|_______|"
-            },
-            { // Face 2
-                " _______ ",
-                "| o     |",
-                "|       |",
-                "|     o |",
-                "|_______|"
-            },
-            { // Face 3
-                " _______ ",
-                "| o     |",
-                "|   o   |",
-                "|     o |",
-                "|_______|"
-            },
-            { // Face 4
-                " _______ ",
-                "| o   o |",
-                "|       |",
-                "| o   o |",
-                "|_______|"
-            },
-            { // Face 5
-                " _______ ",
-                "| o   o |",
-                "|   o   |",
-                "| o   o |",
-                "|_______|"
-            },
-            { // Face 6
-                " _______ ",
-                "| o   o |",
-                "| o   o |",
-                "| o   o |",
-                "|_______|"
-            }
+                { // Face 1
+                        " _______ ",
+                        "|       |",
+                        "|   o   |",
+                        "|       |",
+                        "|_______|"
+                },
+                { // Face 2
+                        " _______ ",
+                        "| o     |",
+                        "|       |",
+                        "|     o |",
+                        "|_______|"
+                },
+                { // Face 3
+                        " _______ ",
+                        "| o     |",
+                        "|   o   |",
+                        "|     o |",
+                        "|_______|"
+                },
+                { // Face 4
+                        " _______ ",
+                        "| o   o |",
+                        "|       |",
+                        "| o   o |",
+                        "|_______|"
+                },
+                { // Face 5
+                        " _______ ",
+                        "| o   o |",
+                        "|   o   |",
+                        "| o   o |",
+                        "|_______|"
+                },
+                { // Face 6
+                        " _______ ",
+                        "| o   o |",
+                        "| o   o |",
+                        "| o   o |",
+                        "|_______|"
+                }
         };
 
         flushScreen(); // clears the screen after displaying dice
 
         System.out.println("The dice roll...");
-        
+
         for (int i = 0; i < diceFaces[0].length; i++) {
             System.out.println(diceFaces[roll1 - 1][i] + "   " + diceFaces[roll2 - 1][i]);
         }
-        
+
         System.out.println();
-        System.out.println("\n"+ANSI_YELLOW+"Total: "+ANSI_RESET + (roll1 + roll2));
+        System.out.println("\n" + ANSI_YELLOW + "Total: " + ANSI_RESET + (roll1 + roll2));
 
     }
 
@@ -140,7 +140,7 @@ public class Craps implements GameInterface {
             player.getAccount().withdraw(betAmount); // Deduct bet amount immediately
         }
         // first roll
-        System.out.println("\n"+ANSI_CYAN+"Press Enter to roll the dice..."+ANSI_RESET);
+        System.out.println("\n" + ANSI_CYAN + "Press Enter to roll the dice..." + ANSI_RESET);
         scanner.nextLine();
         typeWriter("Rolling the dice.......", 50); // typewriter effect for rolling dice
         flushScreen();
@@ -150,21 +150,22 @@ public class Craps implements GameInterface {
 
         System.out.println();
         displayDice(roll1, roll2); // Using the new display method
-        System.out.println("\n"+ANSI_YELLOW+"Shooter rolled: "+ANSI_RESET + roll1 + " + " + roll2 + " = " + total+ANSI_RESET);
+        System.out.println("\n" + ANSI_YELLOW + "Shooter rolled: " + ANSI_RESET + roll1 + " + " + roll2 + " = " + total
+                + ANSI_RESET);
 
         FirstRollResult result = evaluateFirstRoll(total); // creates a result var to FRR type
 
         switch (result) {
             case WIN:
-                System.out.println("\n"+ANSI_GREEN+"Result: Pass line bets WIN!"+ANSI_RESET+"\n");
+                System.out.println("\n" + ANSI_GREEN + "Result: Pass line bets WIN!" + ANSI_RESET + "\n");
                 betting.payOut(true);
                 break;
             case LOSE:
-                System.out.println("\n"+ANSI_RED+"Result: Pass line bets LOSE!"+ANSI_RESET+"\n");
+                System.out.println("\n" + ANSI_RED + "Result: Pass line bets LOSE!" + ANSI_RESET + "\n");
                 betting.payOut(false);
                 break;
             case POINT:
-                System.out.println("\n"+ANSI_YELLOW+"The Point is set to: " + ANSI_RESET+total+"\n");
+                System.out.println("\n" + ANSI_YELLOW + "The Point is set to: " + ANSI_RESET + total + "\n");
                 playPointPhase(players, total);
                 break;
 
@@ -177,7 +178,7 @@ public class Craps implements GameInterface {
     private void playPointPhase(List<Player> players, int point) {
         while (true) {
             System.out.println();
-            System.out.println("\n"+ANSI_CYAN+"Press Enter to roll the dice..."+ANSI_RESET);
+            System.out.println("\n" + ANSI_CYAN + "Press Enter to roll the dice..." + ANSI_RESET);
             scanner.nextLine();
             typeWriter("Rolling the dice.......", 50);
             flushScreen();
@@ -187,14 +188,15 @@ public class Craps implements GameInterface {
 
             System.out.println();
             displayDice(roll1, roll2);
-            System.out.println("\n"+ANSI_YELLOW+"Shooter rolled: "+ANSI_RESET + roll1 + " + " + roll2 + " = " + total);
+            System.out.println(
+                    "\n" + ANSI_YELLOW + "Shooter rolled: " + ANSI_RESET + roll1 + " + " + roll2 + " = " + total);
 
             if (total == point) {
-                System.out.println("\n"+ANSI_GREEN+"Point hit! Pass line wins!"+ANSI_RESET);
+                System.out.println("\n" + ANSI_GREEN + "Point hit! Pass line wins!" + ANSI_RESET);
                 betting.payOut(true);
                 break;
             } else if (total == 7) {
-                System.out.println("\n"+ANSI_RED+"Seven out! Don't pass wins!"+ANSI_RESET);
+                System.out.println("\n" + ANSI_RED + "Seven out! Don't pass wins!" + ANSI_RESET);
                 betting.payOut(false);
                 break;
             }
@@ -246,18 +248,18 @@ public class Craps implements GameInterface {
 
     // Betting Amount
     private double askBetAmount(Player player) {
-        System.out.print("\n"+ANSI_GREEN + player.getUsername() + ", enter your bet amount: "+ANSI_RESET);
+        System.out.print("\n" + ANSI_GREEN + player.getUsername() + ", enter your bet amount: " + ANSI_RESET);
         while (true) {
             try {
                 double amount = Double.parseDouble(scanner.nextLine());
                 if (amount > 0 && amount <= player.getAccount().getBalance()) {
                     return amount;
                 } else {
-                    System.out.println(ANSI_RED+"Invalid amount. Enter a positive number up to your balance ("
-                            + player.getAccount().getBalance() + "): "+ANSI_RESET);
+                    System.out.println(ANSI_RED + "Invalid amount. Enter a positive number up to your balance ("
+                            + player.getAccount().getBalance() + "): " + ANSI_RESET);
                 }
             } catch (NumberFormatException e) {
-                System.out.println(ANSI_RED+"Invalid number. Please enter a valid bet amount: "+ANSI_RESET);
+                System.out.println(ANSI_RED + "Invalid number. Please enter a valid bet amount: " + ANSI_RESET);
             }
         }
     }
@@ -339,15 +341,20 @@ public class Craps implements GameInterface {
     }
 
     private void typeWriter(String text, int delayMillis) {
-    for (char c : text.toCharArray()) {
-        System.out.print(c);
-        System.out.flush();
-        try {
-            Thread.sleep(delayMillis);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+        for (char c : text.toCharArray()) {
+            System.out.print(c);
+            System.out.flush();
+            try {
+                Thread.sleep(delayMillis);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
+        System.out.println();
     }
-    System.out.println();
-}
+
+    @Override
+    public void loadQuestionsFromFile(String filename) {
+        // does not use questions, so this can be left empty
+    }
 }

@@ -34,3 +34,5 @@ jenn | Category: Computer Science | Score: 1
 jenn | Category: Geography | Score: 1
 jenn | Category: Computer Science | Score: 2
 frank | Category: Computer Science | Score: 0
+jenn | Category: General | Score: 8
+jenn | Category: Movies | Score: 8

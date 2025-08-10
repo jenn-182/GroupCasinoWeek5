@@ -523,4 +523,11 @@ public class Poker implements GameInterface {
             play();
         }
     }
+
+    @Override
+    public void loadQuestionsFromFile(String filename) {
+        // Roulette does not use questions, so this can be left empty or throw an
+        // exception
+        // Example: do nothing
+    }
 }
