@@ -441,22 +441,91 @@ public class Casino implements Runnable {
                 System.out.println("Thanks for playing Craps!");
             }
         }
-
     }
 
-    public void playTriviaGame(Player firstPlayer) {
-        try {
-            console.println("Starting Trivia for " + firstPlayer.getUsername());
-            firstPlayer.getAccount().addGameEntry("Playing Trivia - Session started");
 
-            Trivia triviaGame = new Trivia(console); // Pass console to Trivia
-            triviaGame.launch(firstPlayer);
+public void playTriviaGame(Player loggedInPlayer) {
+    try {
+        console.println("Starting Trivia for " + loggedInPlayer.getUsername());
+        loggedInPlayer.getAccount().addGameEntry("Playing Trivia - Session started");
 
-            console.println("Trivia session completed!");
-        } catch (Exception e) {
-            console.println("Error in Trivia game: " + e.getMessage());
+        Trivia triviaGame = new Trivia(console);
+        triviaGame.add(loggedInPlayer);
+
+        // Load all available accounts
+        List<CasinoAccount> allAccounts = new ArrayList<>(accountManager.loadAccounts().values());
+
+        console.println("Available players to join (excluding you):");
+        int idx = 1;
+        Map<Integer, Player> indexToPlayer = new HashMap<>();
+
+        for (CasinoAccount account : allAccounts) {
+            if (!account.getUsername().equals(loggedInPlayer.getUsername())) {
+                console.println(idx + ": " + account.getUsername());
+                indexToPlayer.put(idx, account.getPlayer());
+                idx++;
+            }
         }
+
+        console.println("You can add up to 1 more player to join (max 2 total).");
+        console.println("Type player number to add, or type END to play Single Player.");
+
+        while (triviaGame.getPlayers().size() < 2) { // Trivia max 2 players
+            console.print("Enter player number or END to stop: ");
+            String input = console.getStringInput("").trim();
+
+            if (input.equalsIgnoreCase("END")) {
+                break;
+            }
+
+            try {
+                int selection = Integer.parseInt(input);
+                Player selectedPlayer = indexToPlayer.get(selection);
+
+                if (selectedPlayer == null) {
+                    console.println("Invalid player number. Try again.");
+                    continue;
+                }
+
+                if (triviaGame.getPlayers().contains(selectedPlayer)) {
+                    console.println("Player already added. Pick someone else.");
+                    continue;
+                }
+
+                // Ask for password
+                console.print("Enter password for " + selectedPlayer.getUsername() + ": ");
+                String password = console.getStringInput("").trim();
+
+                CasinoAccount account = accountManager.getAccount(selectedPlayer.getUsername(), password);
+
+                if (account != null) {
+                    triviaGame.add(selectedPlayer);
+                    console.println(selectedPlayer.getUsername() + " added successfully.");
+                } else {
+                    console.println("Incorrect password. Player not added.");
+                }
+
+            } catch (NumberFormatException e) {
+                console.println("Invalid input. Please enter a valid player number or END.");
+            }
+        }
+
+        console.println("Starting Trivia with players:");
+        for (Player p : triviaGame.getPlayers()) {
+            console.println("- " + p.getUsername());
+        }
+
+        triviaGame.play(); // Run Trivia game
+        loggedInPlayer.getAccount().addGameEntry("Trivia session completed");
+        console.println("Trivia session completed!");
+
+    } catch (Exception e) {
+        console.println("Error in Trivia game: " + e.getMessage());
     }
+
+}
+
+
 
     public void playNumberGuessGame(Player player) {
         try {
@@ -503,6 +572,11 @@ public class Casino implements Runnable {
             System.out.println("Withdrawal failed: " + e.getMessage());
             return false;
         }
+    }
+
+    public static List<Player> getRegisteredPlayers() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getRegisteredPlayers'");
     }
 
     private void viewRouletteRules() {

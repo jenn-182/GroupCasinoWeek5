@@ -86,11 +86,11 @@ public class RouletteBet {
         } else if (betType.equals("3RD12")) {
             return num >= 25 && num <= 36;
         } else if (betType.equals("COLUMN1")) {
-            return num % 3 == 1 && num >= 1 && num <= 34; // 1,4,7,10...34
+            return num % 3 == 1 && num >= 1 && num <= 34;
         } else if (betType.equals("COLUMN2")) {
-            return num % 3 == 2 && num >= 2 && num <= 35; // 2,5,8,11...35
+            return num % 3 == 2 && num >= 2 && num <= 35; 
         } else if (betType.equals("COLUMN3")) {
-            return num % 3 == 0 && num >= 3 && num <= 36; // 3,6,9,12...36
+            return num % 3 == 0 && num >= 3 && num <= 36; 
         }
 
         return false;
