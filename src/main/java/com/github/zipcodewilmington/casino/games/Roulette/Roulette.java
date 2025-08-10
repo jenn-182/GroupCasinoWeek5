@@ -19,12 +19,12 @@ public class Roulette {
         wheel[10] = new RouletteNumber(10, "Black");
         wheel[11] = new RouletteNumber(11, "Black");
         wheel[12] = new RouletteNumber(12, "Red");
-        wheel[13] = new RouletteNumber(13, "Red");
-        wheel[14] = new RouletteNumber(14, "Black");
-        wheel[15] = new RouletteNumber(15, "Red");
-        wheel[16] = new RouletteNumber(16, "Black");
-        wheel[17] = new RouletteNumber(17, "Red");
-        wheel[18] = new RouletteNumber(18, "Black");
+        wheel[13] = new RouletteNumber(13, "Black");
+        wheel[14] = new RouletteNumber(14, "Red");
+        wheel[15] = new RouletteNumber(15, "Black");
+        wheel[16] = new RouletteNumber(16, "Red");
+        wheel[17] = new RouletteNumber(17, "Black");
+        wheel[18] = new RouletteNumber(18, "Red");
         wheel[19] = new RouletteNumber(19, "Red");
         wheel[20] = new RouletteNumber(20, "Black");
         wheel[21] = new RouletteNumber(21, "Red");
@@ -37,11 +37,11 @@ public class Roulette {
         wheel[28] = new RouletteNumber(28, "Black");
         wheel[29] = new RouletteNumber(29, "Black");
         wheel[30] = new RouletteNumber(30, "Red");
-        wheel[31] = new RouletteNumber(31, "Red");
-        wheel[32] = new RouletteNumber(32, "Black");
-        wheel[33] = new RouletteNumber(33, "Red");
-        wheel[34] = new RouletteNumber(34, "Black");
-        wheel[35] = new RouletteNumber(35, "Red");
+        wheel[31] = new RouletteNumber(31, "Black");
+        wheel[32] = new RouletteNumber(32, "Red");
+        wheel[33] = new RouletteNumber(33, "Black");
+        wheel[34] = new RouletteNumber(34, "Red");
+        wheel[35] = new RouletteNumber(35, "Black");
         wheel[36] = new RouletteNumber(36, "Red");
         wheel[37] = new RouletteNumber(-1, "Green");
 
