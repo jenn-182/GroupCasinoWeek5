@@ -1,5 +1,6 @@
 package com.github.zipcodewilmington;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -348,6 +349,8 @@ public class Casino implements Runnable {
 
     public void playPokerGame(Player player) {
         try {
+            UIRender uiRender = new UIRender();
+            uiRender.displayGameWelcomeHeader("Poker", UIRender.GREEN);
             console.println("Starting Poker for " + player.getUsername());
             player.getAccount().addGameEntry("Played Poker - Demo session");
             console.println("Poker session completed!");
@@ -359,120 +362,75 @@ public class Casino implements Runnable {
     }
     // Craps Game
 
-    public void playCrapsGame(Player loggedInPlayer) {
+    public void playCrapsGame(Player player) {
+        try {
+            UIRender uiRender = new UIRender();
+            uiRender.displayGameWelcomeHeader("Craps", UIRender.CYAN);
+
+            console.print("Select an option (1-3): ");
+            int choice = scanner.nextInt();
+            scanner.nextLine();
+
+            switch (choice) {
+                case 1:
+                    playSinglePlayerCraps(player);
+                    break;
+                case 2:
+                    playMultiplayerCraps(player);
+                    break;
+                case 3:
+                    viewCrapsRules();
+                    break;
+                default:
+                    console.println("Invalid choice! Please select 1, 2, or 3.");
+                    break;
+            }
+        } catch (Exception e) {
+            console.println("Error in Craps game menu: " + e.getMessage());
+        }
+    }
+
+    private void playSinglePlayerCraps(Player player) {
+        console.println("Starting a single player game of Craps...");
         Craps craps = new Craps();
+        craps.add(player);
         boolean keepPlaying = true;
-
-        // Add the loggedInPlayer to the game
-        craps.add(loggedInPlayer);
-
-        // Show all available players
-        List<CasinoAccount> allAccounts = new ArrayList<>(accountManager.loadAccounts().values());
-
-        System.out.println("Available players to join (excluding you):");
-        int idx = 1;
-        Map<Integer, Player> indexToPlayer = new HashMap<>();
-
-        for (CasinoAccount account : allAccounts) {
-            if (!account.getUsername().equals(loggedInPlayer.getUsername())) {
-                System.out.println(idx + ": " + account.getUsername());
-                indexToPlayer.put(idx, account.getPlayer());
-                idx++;
-            }
-        }
-
-        System.out.println("You can add up to 4 more players to join (max 5 total).");
-        System.out.println("Type player number to add, or type END to finish.");
-
-        while (craps.getPlayers().size() < 5) {
-            System.out.print("Enter player number or END to stop: ");
-            String input = scanner.nextLine().trim();
-
-            if (input.equalsIgnoreCase("END")) {
-                break; // Stop asking for players
-            }
-
-            try {
-                int selection = Integer.parseInt(input);
-                Player selectedPlayer = indexToPlayer.get(selection);
-
-                if (selectedPlayer == null) {
-                    System.out.println("Invalid player number. Try again.");
-                    continue;
-                }
-
-                if (craps.getPlayers().contains(selectedPlayer)) {
-                    System.out.println("Player already added. Pick someone else.");
-                    continue;
-                }
-
-                // Ask for password
-                System.out.print("Enter password for " + selectedPlayer.getUsername() + ": ");
-                String password = scanner.nextLine();
-
-                // Verify password using CasinoAccountManager (you need access to it)
-                CasinoAccount account = accountManager.getAccount(selectedPlayer.getUsername(), password);
-
-                if (account != null) {
-                    craps.add(selectedPlayer);
-                    System.out.println(selectedPlayer.getUsername() + " added successfully.");
-                } else {
-                    System.out.println("Incorrect password. Player not added.");
-                }
-
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter a valid player number or END.");
-            }
-        }
-        System.out.println(
-                "Starting Craps with players:");
-        for (Player p : craps.getPlayers()) {
-            System.out.println("- " + p.getUsername());
-        }
-
         while (keepPlaying) {
-            craps.play(); // run the game once
-
-            System.out.print("Do you want to play another round? (yes/no): ");
+            craps.play();
+            console.print("\nDo you want to play another round? (yes/no): ");
             String playAgain = scanner.nextLine().trim().toLowerCase();
-
             if (!playAgain.equals("yes")) {
                 keepPlaying = false;
-                System.out.println("Thanks for playing Craps!");
+                console.println("\nThanks for playing single player Craps!");
+                player.getAccount().addGameEntry("Craps session completed");
             }
         }
     }
 
+    private void playMultiplayerCraps(Player hostPlayer) {
+        console.println("Starting multiplayer Craps...");
+        Craps craps = new Craps();
+        craps.add(hostPlayer);
 
-public void playTriviaGame(Player loggedInPlayer) {
-    try {
-        console.println("Starting Trivia for " + loggedInPlayer.getUsername());
-        loggedInPlayer.getAccount().addGameEntry("Playing Trivia - Session started");
-
-        Trivia triviaGame = new Trivia(console);
-        triviaGame.add(loggedInPlayer);
-
-        // Load all available accounts
         List<CasinoAccount> allAccounts = new ArrayList<>(accountManager.loadAccounts().values());
-
         console.println("Available players to join (excluding you):");
         int idx = 1;
         Map<Integer, Player> indexToPlayer = new HashMap<>();
 
         for (CasinoAccount account : allAccounts) {
-            if (!account.getUsername().equals(loggedInPlayer.getUsername())) {
+            if (!account.getUsername().equals(hostPlayer.getUsername())) {
                 console.println(idx + ": " + account.getUsername());
                 indexToPlayer.put(idx, account.getPlayer());
                 idx++;
             }
         }
 
-        console.println("You can add up to 1 more player to join (max 2 total).");
-        console.println("Type player number to add, or type END to play Single Player.");
+        console.println("You can add up to 4 more players to join (max 5 total).");
+        console.println("Type player number to add, or type END to finish.");
 
-        while (triviaGame.getPlayers().size() < 2) { // Trivia max 2 players
+        while (craps.getPlayers().size() < 5) {
             console.print("Enter player number or END to stop: ");
-            String input = console.getStringInput("").trim();
+            String input = scanner.nextLine().trim();
 
             if (input.equalsIgnoreCase("END")) {
                 break;
@@ -481,54 +439,146 @@ public void playTriviaGame(Player loggedInPlayer) {
             try {
                 int selection = Integer.parseInt(input);
                 Player selectedPlayer = indexToPlayer.get(selection);
-
                 if (selectedPlayer == null) {
                     console.println("Invalid player number. Try again.");
                     continue;
                 }
-
-                if (triviaGame.getPlayers().contains(selectedPlayer)) {
+                if (craps.getPlayers().contains(selectedPlayer)) {
                     console.println("Player already added. Pick someone else.");
                     continue;
                 }
-
-                // Ask for password
                 console.print("Enter password for " + selectedPlayer.getUsername() + ": ");
-                String password = console.getStringInput("").trim();
-
+                String password = scanner.nextLine();
                 CasinoAccount account = accountManager.getAccount(selectedPlayer.getUsername(), password);
-
                 if (account != null) {
-                    triviaGame.add(selectedPlayer);
+                    craps.add(selectedPlayer);
                     console.println(selectedPlayer.getUsername() + " added successfully.");
                 } else {
                     console.println("Incorrect password. Player not added.");
                 }
-
             } catch (NumberFormatException e) {
                 console.println("Invalid input. Please enter a valid player number or END.");
             }
         }
 
-        console.println("Starting Trivia with players:");
-        for (Player p : triviaGame.getPlayers()) {
+        console.println("Starting Craps with players:");
+        for (Player p : craps.getPlayers()) {
             console.println("- " + p.getUsername());
         }
 
-        triviaGame.play(); // Run Trivia game
-        loggedInPlayer.getAccount().addGameEntry("Trivia session completed");
-        console.println("Trivia session completed!");
-
-    } catch (Exception e) {
-        console.println("Error in Trivia game: " + e.getMessage());
+        boolean keepPlaying = true;
+        while (keepPlaying) {
+            craps.play();
+            console.print("Do you want to play another round? (yes/no): ");
+            String playAgain = scanner.nextLine().trim().toLowerCase();
+            if (!playAgain.equals("yes")) {
+                keepPlaying = false;
+                console.println("Thanks for playing Craps!");
+                p.getAccount().addGameEntry("Craps session completed");
+            }
+        }
     }
 
-}
+    private void viewCrapsRules() {
+        try {
+            // Replace with the actual path to your Craps rules file
+            String rules = new String(Files.readAllBytes(Paths.get("/Users/jenn/Projects/GroupCasinoWeek5/src/main/java/com/github/zipcodewilmington/casino/games/Craps/Crapsrules.md")));
+            flushScreen();
+            console.println(rules);
+        } catch (IOException e) {
+            console.println("Could not load Craps rules. Please check that Crapsrules.md exists.");
+        }
+        console.println("\nPress ENTER to return to the menu...");
+        scanner.nextLine();
+    }
 
+    public void playTriviaGame(Player loggedInPlayer) {
+        try {
+            UIRender uiRender = new UIRender();
+            uiRender.displayGameWelcomeHeader("Trivia", UIRender.YELLOW);
+            console.println("Starting Trivia for " + loggedInPlayer.getUsername());
+            loggedInPlayer.getAccount().addGameEntry("Playing Trivia - Session started");
 
+            Trivia triviaGame = new Trivia(console);
+            triviaGame.add(loggedInPlayer);
+
+            // Load all available accounts
+            List<CasinoAccount> allAccounts = new ArrayList<>(accountManager.loadAccounts().values());
+
+            console.println("Available players to join (excluding you):");
+            int idx = 1;
+            Map<Integer, Player> indexToPlayer = new HashMap<>();
+
+            for (CasinoAccount account : allAccounts) {
+                if (!account.getUsername().equals(loggedInPlayer.getUsername())) {
+                    console.println(idx + ": " + account.getUsername());
+                    indexToPlayer.put(idx, account.getPlayer());
+                    idx++;
+                }
+            }
+
+            console.println("You can add up to 1 more player to join (max 2 total).");
+            console.println("Type player number to add, or type END to play Single Player.");
+
+            while (triviaGame.getPlayers().size() < 2) { // Trivia max 2 players
+                console.print("Enter player number or END to stop: ");
+                String input = console.getStringInput("").trim();
+
+                if (input.equalsIgnoreCase("END")) {
+                    break;
+                }
+
+                try {
+                    int selection = Integer.parseInt(input);
+                    Player selectedPlayer = indexToPlayer.get(selection);
+
+                    if (selectedPlayer == null) {
+                        console.println("Invalid player number. Try again.");
+                        continue;
+                    }
+
+                    if (triviaGame.getPlayers().contains(selectedPlayer)) {
+                        console.println("Player already added. Pick someone else.");
+                        continue;
+                    }
+
+                    // Ask for password
+                    console.print("Enter password for " + selectedPlayer.getUsername() + ": ");
+                    String password = console.getStringInput("").trim();
+
+                    CasinoAccount account = accountManager.getAccount(selectedPlayer.getUsername(), password);
+
+                    if (account != null) {
+                        triviaGame.add(selectedPlayer);
+                        console.println(selectedPlayer.getUsername() + " added successfully.");
+                    } else {
+                        console.println("Incorrect password. Player not added.");
+                    }
+
+                } catch (NumberFormatException e) {
+                    console.println("Invalid input. Please enter a valid player number or END.");
+                }
+            }
+
+            console.println("Starting Trivia with players:");
+            for (Player p : triviaGame.getPlayers()) {
+                console.println("- " + p.getUsername());
+            }
+
+            triviaGame.play(); // Run Trivia game
+            loggedInPlayer.getAccount().addGameEntry("Trivia session completed");
+            console.println("Trivia session completed!");
+
+        } catch (Exception e) {
+            console.println("Error in Trivia game: " + e.getMessage());
+        }
+
+    }
 
     public void playNumberGuessGame(Player player) {
         try {
+            UIRender uiRender = new UIRender();
+            uiRender.displayGameWelcomeHeader("Number Guess", UIRender.RED);
             console.println("Starting Number Guess for " + player.getUsername());
             player.getAccount().addGameEntry("Played Number Guess - Demo session");
             console.println("Number Guess session completed!");

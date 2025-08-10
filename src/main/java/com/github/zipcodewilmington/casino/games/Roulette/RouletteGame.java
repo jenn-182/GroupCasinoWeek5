@@ -413,21 +413,12 @@ public class RouletteGame implements GameInterface {
         System.out.println();
         System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
         System.out.println();
-        System.out.println(ANSI_PURPLE+"Thanks for playing multiplayer roulette!"+ANSI_RESET);
+        System.out.println(ANSI_PURPLE+"Thanks for playing roulette!"+ANSI_RESET);
     }
 
     private void flushScreen() {
         System.out.print("\033[H\033[2J");
         System.out.flush();
-    }
-
-    private void showGameIntro() {
-        System.out.println();
-        System.out.println(ANSI_PURPLE
-                + "══════════════════════════════════════════════════════════════════════════════" + ANSI_RESET);
-        System.out.println("                       WELCOME TO AMERICAN ROULETTE!");
-        System.out.println(ANSI_PURPLE
-                + "══════════════════════════════════════════════════════════════════════════════" + ANSI_RESET);
     }
 
     // Helper for formatting
