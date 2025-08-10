@@ -7,7 +7,7 @@ public class Question {
     private final String answerTwo;   // B
     private final String answerThree; // C
     private final String answerFour;  // D
-    private final String correctAnswer; // A, B, C, or D
+    private final String correctAnswer;
 
     public Question(String category, String question, String answerOne, String answerTwo,
                     String answerThree, String answerFour, String correctAnswer) {
@@ -17,7 +17,11 @@ public class Question {
         this.answerTwo = answerTwo;
         this.answerThree = answerThree;
         this.answerFour = answerFour;
-        this.correctAnswer = correctAnswer.toUpperCase();
+
+        // Safe null handling for unit tests
+        this.correctAnswer = (correctAnswer == null) 
+            ? null 
+            : correctAnswer.toUpperCase();
     }
 
     public String getCategory() {

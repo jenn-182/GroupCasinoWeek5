@@ -35,4 +35,6 @@ public interface GameInterface extends Runnable {
     void launch(Player primaryPlayer);
 
     void launchMultiplayer(List<Player> players);
+    void loadQuestionsFromFile(String filename);
+
 }

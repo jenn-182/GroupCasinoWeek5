@@ -27,7 +27,7 @@ public class Trivia implements GameInterface {
     }
 
     private final List<Player> players = new ArrayList<>();
-    private final List<Question> questions = new ArrayList<>();
+    protected final List<Question> questions = new ArrayList<>();
 
     @Override
     public boolean add(Player player) {
@@ -291,6 +291,19 @@ public class Trivia implements GameInterface {
         play();
     }
 
+    @Override
+    public void launch(Player player) {
+        if (player == null) {
+            console.println("No player provided to launch the game.");
+            return;
+        }
+        players.clear();
+        if (add(player)) {
+            play();
+        }
+    }
+    
+
     private void loadQuestionsFromFile(String filename) {
         questions.clear();
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
@@ -313,7 +326,7 @@ public class Trivia implements GameInterface {
         }
     }
 
-    private void saveScore(String playerName, String category, int score) {
+    public void saveScore(String playerName, String category, int score) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter("scores.txt", true))) {
             bw.write(playerName + " | Category: " + category + " | Score: " + score);
             bw.newLine();

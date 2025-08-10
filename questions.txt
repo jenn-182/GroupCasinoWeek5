@@ -1,45 +1,352 @@
+50
+General
+What color is the sky?
+Blue
+Green
+Red
+Yellow
+A
+General
+What is 2 + 2?
+3
+4
+5
 6
-Geography
-What is the capital of France?
-London
-Paris
-Rome
-Berlin
 B
-Technology
-Which language runs in a web browser?
-Java
-C++
-Python
-JavaScript
-D
-Computer Science
-What does CPU stand for?
-Central Process Unit
-Central Processing Unit
-Computer Personal Unit
-Central Processor Utility
-B
-Technology
-What does HTML stand for?
-Hyper Trainer Marking Language
-Hyper Text Markup Language
-Hyper Text Mark Language
-Hyper Text Markdown Language
-B
-Geography
-Which continent is the Sahara Desert located in?
-Asia
-South America
-Africa
-Australia
+General
+How many continents are there?
+5
+6
+7
+8
 C
-Computer Science
-What does RAM stand for?
-Read Access Memory
-Random Access Memory
-Ready Action Memory
-Run Active Memory
+General
+Which planet is known as the Red Planet?
+Earth
+Mars
+Jupiter
+Venus
 B
-
+General
+What is the largest mammal?
+Elephant
+Blue Whale
+Giraffe
+Hippo
+B
+General
+Which gas do humans breathe in?
+Oxygen
+Carbon Dioxide
+Nitrogen
+Helium
+A
+General
+How many days are in a leap year?
+364
+365
+366
+367
+C
+General
+What do bees produce?
+Milk
+Honey
+Wax
+Pollen
+B
+General
+Which shape has three sides?
+Square
+Triangle
+Circle
+Pentagon
+B
+General
+What is H2O?
+Water
+Salt
+Oxygen
+Hydrogen
+A
+Science
+What planet is closest to the Sun?
+Mercury
+Venus
+Earth
+Mars
+A
+Science
+What is the chemical symbol for gold?
+Ag
+Au
+Go
+Gd
+B
+Science
+Which part of the plant conducts photosynthesis?
+Root
+Leaf
+Stem
+Flower
+B
+Science
+What force keeps us on the ground?
+Magnetism
+Gravity
+Friction
+Air Pressure
+B
+Science
+What gas do plants release during photosynthesis?
+Oxygen
+Carbon Dioxide
+Nitrogen
+Helium
+A
+Science
+How many bones are in the adult human body?
+206
+201
+198
+210
+A
+Science
+Which blood type is the universal donor?
+A
+B
+O
+AB
+C
+Science
+What is the boiling point of water at sea level in Celsius?
+50
+75
+90
+100
+D
+Science
+What is the fastest land animal?
+Cheetah
+Tiger
+Lion
+Horse
+A
+Science
+What is the powerhouse of the cell?
+Nucleus
+Ribosome
+Mitochondria
+Cytoplasm
+C
+History
+Who was the first President of the United States?
+Abraham Lincoln
+George Washington
+John Adams
+Thomas Jefferson
+B
+History
+In which year did World War II end?
+1942
+1945
+1948
+1950
+B
+History
+Who discovered America in 1492?
+Christopher Columbus
+Leif Erikson
+Amerigo Vespucci
+James Cook
+A
+History
+Which wall fell in 1989?
+Great Wall of China
+Berlin Wall
+Hadrian's Wall
+Western Wall
+B
+History
+Who was known as the Maid of Orléans?
+Marie Curie
+Joan of Arc
+Catherine the Great
+Queen Victoria
+B
+History
+The Titanic sank in which year?
+1910
+1912
+1914
+1916
+B
+History
+Who was the British Prime Minister during WWII?
+Neville Chamberlain
+Winston Churchill
+Margaret Thatcher
+Tony Blair
+B
+History
+Which empire was ruled by Julius Caesar?
+Greek
+Roman
+Egyptian
+Persian
+B
+History
+What was the first permanent English settlement in America?
+Jamestown
+Plymouth
+Roanoke
+New York
+A
+History
+In which country did the Industrial Revolution begin?
+France
+England
+Germany
+USA
+B
+Sports
+How many players in a soccer team on the field?
+9
+10
+11
+12
+C
+Sports
+What sport uses a puck?
+Soccer
+Basketball
+Hockey
+Tennis
+C
+Sports
+Which country has won the most FIFA World Cups?
+Brazil
+Germany
+Italy
+Argentina
+A
+Sports
+What is the length of an Olympic swimming pool?
+25m
+50m
+75m
+100m
+B
+Sports
+Which sport is known as "The Gentleman's Game"?
+Tennis
+Golf
+Cricket
+Rugby
+C
+Sports
+In which sport would you perform a slam dunk?
+Baseball
+Basketball
+Hockey
+Volleyball
+B
+Sports
+What sport uses a shuttlecock?
+Tennis
+Badminton
+Squash
+Table Tennis
+B
+Sports
+Which country hosted the 2016 Summer Olympics?
+China
+Brazil
+UK
+Japan
+B
+Sports
+In tennis, what is a score of zero called?
+Nil
+Love
+Zero
+Duck
+B
+Sports
+How many holes in a standard round of golf?
+9
+12
+18
+21
+C
+Movies
+Who directed Titanic?
+James Cameron
+Steven Spielberg
+Martin Scorsese
+Ridley Scott
+A
+Movies
+Which movie features a talking snowman named Olaf?
+Frozen
+Moana
+Tangled
+Brave
+A
+Movies
+Who played Jack Sparrow in Pirates of the Caribbean?
+Orlando Bloom
+Johnny Depp
+Brad Pitt
+Tom Hanks
+B
+Movies
+Which movie is about toys that come to life?
+Cars
+Toy Story
+Finding Nemo
+Up
+B
+Movies
+Who is the main villain in The Lion King?
+Scar
+Mufasa
+Zazu
+Simba
+A
+Movies
+In The Matrix, does Neo take the red pill or blue pill?
+Red
+Blue
+Both
+Neither
+A
+Movies
+Which film won Best Picture in 1994?
+Pulp Fiction
+The Shawshank Redemption
+Forrest Gump
+Four Weddings and a Funeral
+C
+Movies
+Which superhero is known as The Dark Knight?
+Iron Man
+Batman
+Superman
+Spider-Man
+B
+Movies
+Who voiced Woody in Toy Story?
+Tom Hanks
+Tim Allen
+Chris Evans
+Brad Pitt
+A
+Movies
+What is the name of the kingdom in Frozen?
+Arendelle
+Corona
+Atlantica
+Agrabah
+A
 
