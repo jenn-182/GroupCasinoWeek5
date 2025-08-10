@@ -13,6 +13,7 @@ public class UIRender {
         String yellow = "\u001B[33m";
         String green = "\u001B[32m";
         String purple = "\u001B[35m";
+        public static final String PURPLE = "\u001B[35m";
 
         public void flushScreen() {
                 System.out.print("\033[H\033[2J");
@@ -586,7 +587,6 @@ public class UIRender {
                 return text + String.format("%" + (totalWidth - text.length()) + "s", "");
         }
 
-
         public void displayRegistrationHeader() {
                 String borderColor = LOGIN_COLOR;
                 String titleColor = yellow;
@@ -620,6 +620,29 @@ public class UIRender {
                                 + "╠══════════════════════════════════════════════════════════════════════╣" + reset);
                 System.out.println(borderColor + "║" + background + messageColor + centerText(message, 70) + reset
                                 + borderColor + "║" + reset);
+                System.out.println(borderColor
+                                + "╚══════════════════════════════════════════════════════════════════════╝" + reset);
+                System.out.println();
+        }
+
+        public void displayGameWelcomeHeader(String gameName, String borderColor) {
+                String titleColor = yellow;
+                String optionColor = white;
+                String background = black;
+
+                System.out.println(borderColor
+                                + "╔══════════════════════════════════════════════════════════════════════╗" + reset);
+                System.out.println(borderColor + "║" + background + titleColor
+                                + centerText("WELCOME TO " + gameName.toUpperCase(), 70) + reset + borderColor + "║"
+                                + reset);
+                System.out.println(borderColor
+                                + "╠══════════════════════════════════════════════════════════════════════╣" + reset);
+                System.out.println(borderColor + "║" + background + optionColor + centerText("1. Single Player", 70)
+                                + reset + borderColor + "║" + reset);
+                System.out.println(borderColor + "║" + background + optionColor + centerText("2. Multiplayer", 70)
+                                + reset + borderColor + "║" + reset);
+                System.out.println(borderColor + "║" + background + optionColor + centerText("3. View Rules", 70)
+                                + reset + borderColor + "║" + reset);
                 System.out.println(borderColor
                                 + "╚══════════════════════════════════════════════════════════════════════╝" + reset);
                 System.out.println();

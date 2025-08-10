@@ -1,5 +1,7 @@
 package com.github.zipcodewilmington;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +15,7 @@ import com.github.zipcodewilmington.casino.games.Craps.Craps;
 import com.github.zipcodewilmington.casino.games.Poker.Poker;
 import com.github.zipcodewilmington.casino.games.TriviaGame.Trivia;
 import com.github.zipcodewilmington.casino.ui.IOConsole;
+import com.github.zipcodewilmington.casino.ui.UIRender;
 
 /**
  * Created by leon on 7/21/2020. Casino - Main orchestrator of the casino
@@ -150,16 +153,12 @@ public class Casino implements Runnable {
 
     public void playRouletteGame(Player player) {
         try {
-            console.println("Welcome to the Roulette Table, " + player.getUsername() + "!");
+            UIRender uiRender = new UIRender();
+            uiRender.displayGameWelcomeHeader("Roulette", UIRender.PURPLE);
 
-            // ADD GAME MODE SELECTION
-            console.println("");
-            console.println("ROULETTE GAME MODES:");
-            console.println("1. Single Player");
-            console.println("2. Multiplayer (2-6 players)");
-            console.println("");
-
-            int choice = console.getIntegerInput("Choose mode (1 or 2): ");
+            System.out.print("Select an option (1-3): ");
+            int choice = scanner.nextInt();
+            scanner.nextLine();
 
             switch (choice) {
                 case 1:
@@ -168,57 +167,44 @@ public class Casino implements Runnable {
                 case 2:
                     playMultiplayerRoulette(player);
                     break;
+                case 3:
+                    viewRouletteRules();
+                    break;
                 default:
-                    console.println("Invalid choice! Defaulting to single player.");
-                    playSinglePlayerRoulette(player);
+                    System.out.println("Invalid choice! Please select 1, 2, or 3.");
                     break;
             }
 
         } catch (Exception e) {
-            console.println("Error in Roulette game: " + e.getMessage());
+            System.out.println("Error in Roulette game: " + e.getMessage());
         }
     }
 
-    // EXTRACT YOUR EXISTING SINGLE PLAYER CODE
     private void playSinglePlayerRoulette(Player player) {
         try {
             console.println("Transferring your casino balance to the Roulette table...");
 
-            // Create the roulette wheel
-            com.github.zipcodewilmington.casino.games.Roulette.Roulette roulette = new com.github.zipcodewilmington.casino.games.Roulette.Roulette();
-            roulette.createWheel();
-
-            // Create an empty bet list for the game
-            java.util.List<com.github.zipcodewilmington.casino.games.Roulette.RouletteBet> currentBets = new java.util.ArrayList<>();
-
-            // Store initial balance to calculate changes
             double initialBalance = player.getAccount().getBalance();
 
-            // Create the RouletteGame with player's current balance
-            com.github.zipcodewilmington.casino.games.Roulette.RouletteGame game = new com.github.zipcodewilmington.casino.games.Roulette.RouletteGame(
-                    roulette,
-                    player.getAccount().getBalance(),
-                    currentBets);
+            // Use the default RouletteGame constructor
+            com.github.zipcodewilmington.casino.games.Roulette.RouletteGame game = new com.github.zipcodewilmington.casino.games.Roulette.RouletteGame();
 
-            // This runs the COMPLETE RouletteGame with ALL original prompts:
-            game.launch(player);  // Use launch() method for single player
+            // Run the game
+            game.launch(player);
 
             // Sync the game results back to the casino account
-            double finalAmount = game.getCurrentBalance();
+            double finalAmount = player.getAccount().getBalance();
             double difference = finalAmount - initialBalance;
 
-            // Update the player's casino account
             if (difference > 0) {
-                player.getAccount().deposit(difference);
                 console.println("\nNice job! Your casino account gained $" + String.format("%.2f", difference));
             } else if (difference < 0) {
-                player.getAccount().withdraw(Math.abs(difference));
-                console.println("\nTough session! Your casino account lost $" + String.format("%.2f", Math.abs(difference)));
+                console.println(
+                        "\nTough session! Your casino account lost $" + String.format("%.2f", Math.abs(difference)));
             } else {
                 console.println("\nEven session - no change to your casino account!");
             }
 
-            // Update final balance and add to game history
             console.println("Updated Casino Balance: $" + String.format("%.2f", player.getAccount().getBalance()));
             player.getAccount().addGameEntry("Roulette Session - Net: "
                     + (difference >= 0 ? "+$" + String.format("%.2f", difference)
@@ -232,7 +218,6 @@ public class Casino implements Runnable {
         }
     }
 
-    // ADD NEW MULTIPLAYER METHOD
     private void playMultiplayerRoulette(Player hostPlayer) {
         try {
             console.println("MULTIPLAYER ROULETTE SETUP");
@@ -263,9 +248,8 @@ public class Casino implements Runnable {
             if (players.size() >= 2) {
                 console.println("\nStarting Multiplayer Roulette with " + players.size() + " players!");
 
-                // Create and launch multiplayer roulette
-                com.github.zipcodewilmington.casino.games.Roulette.RouletteGame game
-                        = new com.github.zipcodewilmington.casino.games.Roulette.RouletteGame();
+                // launch multiplayer roulette
+                com.github.zipcodewilmington.casino.games.Roulette.RouletteGame game = new com.github.zipcodewilmington.casino.games.Roulette.RouletteGame();
 
                 game.launchMultiplayer(players);
 
@@ -291,7 +275,7 @@ public class Casino implements Runnable {
     // HELPER METHOD TO GET ADDITIONAL PLAYERS
     private Player getAdditionalPlayer(int playerNumber) {
         try {
-            // Show available players (similar to your Craps implementation)
+
             List<CasinoAccount> allAccounts = new ArrayList<>(accountManager.loadAccounts().values());
 
             console.println("\nAvailable players for Player " + playerNumber + ":");
@@ -316,7 +300,8 @@ public class Casino implements Runnable {
                 // Use existing player
                 CasinoAccount selectedAccount = indexToAccount.get(selection);
                 if (selectedAccount != null) {
-                    String password = console.getStringInput("Enter password for " + selectedAccount.getUsername() + ": ");
+                    String password = console
+                            .getStringInput("Enter password for " + selectedAccount.getUsername() + ": ");
                     CasinoAccount verifiedAccount = accountManager.getAccount(selectedAccount.getUsername(), password);
 
                     if (verifiedAccount != null) {
@@ -372,7 +357,7 @@ public class Casino implements Runnable {
             console.println("Error in Poker game: " + e.getMessage());
         }
     }
-// Craps Game
+    // Craps Game
 
     public void playCrapsGame(Player loggedInPlayer) {
         Craps craps = new Craps();
@@ -404,7 +389,7 @@ public class Casino implements Runnable {
             String input = scanner.nextLine().trim();
 
             if (input.equalsIgnoreCase("END")) {
-                break;  // Stop asking for players
+                break; // Stop asking for players
             }
 
             try {
@@ -518,5 +503,26 @@ public class Casino implements Runnable {
             System.out.println("Withdrawal failed: " + e.getMessage());
             return false;
         }
+    }
+
+    private void viewRouletteRules() {
+
+        try {
+            String rules = new String(Files.readAllBytes(Paths.get(
+                    "/Users/jenn/Projects/GroupCasinoWeek5/src/main/java/com/github/zipcodewilmington/casino/games/Roulette/Rouletterules.md")));
+            flushScreen();
+            System.out.println(rules);
+        } catch (Exception e) {
+            System.out.println("Could not load Roulette rules. Please check that Rouletterules.md exists.");
+        }
+
+        System.out.println();
+        System.out.print("Press ENTER to return to the menu...");
+        scanner.nextLine();
+    }
+
+    private void flushScreen() {
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
     }
 }

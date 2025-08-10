@@ -7,3 +7,4 @@ anthony | Category: Computer Science | Score: 2
 anthony | Category: Geography | Score: 2
 josiah | Category: Geography | Score: 0
 jasper | Category: Computer Science | Score: 1
+jenn | Category: Computer Science | Score: 1
