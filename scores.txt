@@ -16,3 +16,9 @@ josiah | Category: Computer Science | Score: 0
 jenn | Category: Computer Science | Score: 1
 josiah | Category: Computer Science | Score: 1
 younis | Category: Computer Science | Score: 0
+testPlayer | Category: General | Score: 2
+josiah | Category: Science | Score: 0
+jenn | Category: Science | Score: 0
+josiah | Category: Sports | Score: 2
+anthony | Category: Sports | Score: 3
+josiah | Category: Sports | Score: 3
