@@ -509,4 +509,18 @@ public class Poker implements GameInterface {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'launch'");
     }
+
+    @Override
+    public void launchMultiplayer(List<Player> players) {
+
+        System.out.println("Starting multiplayer Poker with players:");
+        for (Player p : players) {
+            System.out.println(" - " + p.getUsername());
+        }
+        // just run a single game for the first player
+        if (!players.isEmpty()) {
+            this.player = players.get(0);
+            play();
+        }
+    }
 }

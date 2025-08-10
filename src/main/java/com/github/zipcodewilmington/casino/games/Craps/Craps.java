@@ -331,12 +331,12 @@ public class Craps implements GameInterface {
         System.out.println("Welcome to Craps, " + player.getUsername() + "!");
     }
 
-    // @Override
-    // public void launchMultiplayer(List<Player> players) {
-    //     this.players = players;
-    //     System.out.println("Welcome to multiplayer Craps!");
-    //     play(this.players);
-    // }
+    @Override
+    public void launchMultiplayer(List<Player> players) {
+        this.players = players;
+        System.out.println("Welcome to multiplayer Craps!");
+        play(this.players);
+    }
 
     private void typeWriter(String text, int delayMillis) {
     for (char c : text.toCharArray()) {
