@@ -4,14 +4,23 @@ public class RouletteBet {
     private int numberBet;
     private double amountBet;
     private String betType;
-    private int[] numbers; 
+    private int[] numbers;
+    private boolean win = false;
 
-    
+    public void setWin(boolean win) {
+        this.win = win;
+    }
+
+    public boolean wasWin() {
+        return win;
+    }
+
+    // Existing constructors...
     public RouletteBet(int numberBet, double amountBet) {
         this.numberBet = numberBet;
         this.amountBet = amountBet;
         this.betType = "STRAIGHT_UP";
-        this.numbers = new int[] { numberBet }; 
+        this.numbers = new int[] { numberBet };
     }
 
     public RouletteBet(String betType, double amountBet) {
@@ -20,12 +29,11 @@ public class RouletteBet {
         this.betType = betType;
     }
 
-    
     public RouletteBet(String betType, int[] numbers, double amountBet) {
         this.betType = betType;
         this.numbers = numbers;
         this.amountBet = amountBet;
-        this.numberBet = numbers[0]; 
+        this.numberBet = numbers[0];
     }
 
     public int[] getNumbers() {
@@ -44,7 +52,6 @@ public class RouletteBet {
         return numberBet;
     }
 
-    
     public boolean checkWin(RouletteNumber winningNumber) {
         int num = winningNumber.getNumber();
 
@@ -89,7 +96,6 @@ public class RouletteBet {
         return false;
     }
 
-    
     private boolean containsNumber(int num) {
         if (numbers == null)
             return false;
@@ -100,7 +106,6 @@ public class RouletteBet {
         return false;
     }
 
-    
     public double calculatePayout() {
         if (betType.equals("STRAIGHT_UP")) {
             return amountBet * 35; // 35:1
@@ -115,6 +120,7 @@ public class RouletteBet {
         } else if (betType.equals("TOP_LINE")) {
             return amountBet * 6; // 6:1
         }
+
         else if (betType.equals("RED") || betType.equals("BLACK") ||
                 betType.equals("ODD") || betType.equals("EVEN") ||
                 betType.equals("HIGH") || betType.equals("LOW")) {
@@ -126,7 +132,6 @@ public class RouletteBet {
         return 0.0;
     }
 
-    
     public boolean validateBet() {
         // Universal $10 minimum for all bets
         if (amountBet < 10.0) {
@@ -150,7 +155,6 @@ public class RouletteBet {
         return true;
     }
 
-    
     private boolean isInsideBet() {
         return betType.equals("STRAIGHT_UP") || betType.equals("SPLIT") ||
                 betType.equals("CORNER") || betType.equals("STREET") ||
@@ -160,7 +164,6 @@ public class RouletteBet {
     private boolean isOutsideBet() {
         return !isInsideBet();
     }
-
 
     public boolean isTwoToOneBet() {
         // Dozen bets (pay 2:1)

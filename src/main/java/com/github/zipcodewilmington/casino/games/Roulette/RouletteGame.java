@@ -1,8 +1,9 @@
 package com.github.zipcodewilmington.casino.games.Roulette;
 
+import com.github.zipcodewilmington.casino.games.Roulette.RouletteTable;
+
 import com.github.zipcodewilmington.casino.GameInterface;
 import com.github.zipcodewilmington.casino.Player;
-import com.github.zipcodewilmington.casino.CasinoAccount;
 import java.util.Scanner;
 import java.util.List;
 import java.util.Map;
@@ -10,359 +11,621 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class RouletteGame implements GameInterface {
-    Roulette wheel;
-    double playerCurrentMoneyAmount = 1000.0;
-    List<RouletteBet> currentBets;
-    List<RouletteBet> previousBets;  
-    Scanner scanner = new Scanner(System.in);
+    // ANSI color codes
+    private static final String ANSI_YELLOW = "\u001B[33m";
+    private static final String ANSI_RESET = "\u001B[0m";
+    private static final String ANSI_RED = "\u001B[31m";
+    private static final String ANSI_GREEN = "\u001B[32m";
+    private static final String ANSI_PURPLE = "\u001B[35m";
+
+    private Roulette wheel;
+    private Scanner scanner;
     private Player currentPlayer;
     private List<Player> activePlayers;
     private Map<Player, List<RouletteBet>> playerBets;
     private Map<Player, List<RouletteBet>> previousPlayerBets;
-    private boolean isMultiplayer;  
+    private boolean isMultiplayer;
+    private Map<Player, Double> playerWins = new HashMap<>();
+    private Map<Player, Double> playerLosses = new HashMap<>();
 
     public RouletteGame() {
-        try {
-            this.wheel = new Roulette();
-            this.currentBets = new ArrayList<>();
-            this.previousBets = new ArrayList<>();
-            this.scanner = new Scanner(System.in);
-            this.wheel.createWheel();
-            this.activePlayers = new ArrayList<>();
-            this.playerBets = new HashMap<>();
-            this.previousPlayerBets = new HashMap<>();
-            this.isMultiplayer = false;
-        } catch (Exception e) {
-            System.out.println("ERROR in constructor: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    
-    public RouletteGame(Roulette wheel, double PlayerCurrentMoneyAmount, List<RouletteBet> currentBets) {
-        this.wheel = wheel;
-        this.playerCurrentMoneyAmount = PlayerCurrentMoneyAmount;
-        this.currentBets = currentBets;
-        this.previousBets = new ArrayList<>();  
+        this.wheel = new Roulette();
         this.scanner = new Scanner(System.in);
         this.activePlayers = new ArrayList<>();
         this.playerBets = new HashMap<>();
         this.previousPlayerBets = new HashMap<>();
-        this.isMultiplayer = false;  
-    }
-
-    public void playGame() {
-        System.out.println("Welcome to Roulette!");
-
-        while (playerCurrentMoneyAmount >= 10.0) {
-            System.out.println("Your Money: $" + playerCurrentMoneyAmount);
-            System.out.println(" ");
-            playRound();
-
-            System.out.println("Try your luck again? (y/n)");
-            String answer = scanner.next();
-
-            if (answer.equals("n") || answer.equals("no")) {
-                break;
-            }
+        this.isMultiplayer = false;
+        try {
+            this.wheel.createWheel();
+        } catch (Exception e) {
+            System.err.println("ERROR creating roulette wheel: " + e.getMessage());
         }
     }
 
-    private void playRound() {
+    @Override
+    public void launch(Player player) {
+        this.currentPlayer = player;
+        this.isMultiplayer = false;
+        System.out.println("Welcome to Roulette, " + player.getUsername() + "!");
+        System.out.println("Starting balance: $" + String.format("%.2f", player.getAccount().getBalance()));
+        playGame();
+    }
+
+    // Multiplayer entry point
+    public void launchMultiplayer(List<Player> players) {
+        if (players.size() < 2) {
+            System.out.println("Need at least 2 Players for multiplayer!");
+            return;
+        }
+        this.activePlayers = new ArrayList<>(players);
+        this.isMultiplayer = true;
+        for (Player player : activePlayers) {
+            playerBets.put(player, new ArrayList<>());
+            previousPlayerBets.put(player, new ArrayList<>());
+        }
+        System.out.println("The more, the merrier!");
+        System.out.print("Players: ");
+        for (int i = 0; i < players.size(); i++) {
+            System.out.print(players.get(i).getUsername());
+            if (i < players.size() - 1)
+                System.out.print(", ");
+        }
+        System.out.println();
+        System.out.println();
+        playMultiplayerRound();
+        showFinalBalances();
+    }
+
+    private void playGame() {
+        flushScreen();
+        showBettingMenu(previousPlayerBets.getOrDefault(currentPlayer, new ArrayList<>()));
+        while (currentPlayer.getAccount().getBalance() >= 1.0) {
+            System.out.println("Your Money: $" + String.format("%.2f", currentPlayer.getAccount().getBalance()));
+            System.out.println(" ");
+            playRound(currentPlayer);
+            System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            System.out.println();
+            System.out.print("Try your luck again? (y/n): ");
+            String answer = scanner.next();
+
+            if (answer.equalsIgnoreCase("n") || answer.equalsIgnoreCase("no")) {
+                break;
+            }
+        }
+
+        if (!activePlayers.contains(currentPlayer)) {
+            activePlayers.clear();
+            activePlayers.add(currentPlayer);
+        }
+        showFinalBalances();
+    }
+
+    private void playRound(Player player) {
         try {
-            currentBets.clear();
-            showBettingMenu();
-            tableLimits();
+            flushScreen();
+            showBettingMenu(previousPlayerBets.getOrDefault(player, new ArrayList<>()));
 
-            System.out.println("Place your bets! Choose!");
-            
-            while (true) {
-                try {
-                    // simple prompt
-                    System.out.println("Which bet will you choose? (or 'done' to spin)");
-                    System.out.println("Examples: RED, 7, 1-2, 1-2-3, 1-2-4-5, TOPLINE");
-                    
-                    if (!scanner.hasNext()) {
-                        Thread.sleep(100);
-                        continue;
-                    }
-                    
-                    String betInput = scanner.next().toUpperCase().trim();
-                    
-                    if (betInput.equals("DONE")) {
-                        break;
-                    }
+            List<RouletteBet> currentBets = new ArrayList<>();
+            System.out.println("");
+            collectBetsFromPlayer(player, currentBets);
 
-                    System.out.println("How much do you want to bet?");
-                    
-                    if (!scanner.hasNextDouble()) {
-                        System.out.println("Invalid amount! Please enter a number.");
-                        scanner.next();
-                        continue;
-                    }
-                    
-                    double amountBet = scanner.nextDouble();
-
-                    // Quick validation with helpful messages
-                    if (amountBet <= 0) {
-                        System.out.println("Invalid amount! Please enter a positive number.");
-                        continue;
-                    }
-
-                    if (amountBet > playerCurrentMoneyAmount) {
-                        System.out.println("Not enough money! You have $" + String.format("%.2f", playerCurrentMoneyAmount));
-                        continue;
-                    }
-
-                    // Create bet
-                    RouletteBet bet = createBetFromInput(betInput, amountBet);
-
-                    if (bet == null || !bet.validateBet()) {
-                        System.out.println("Invalid bet! Type 'help' for betting options or try again.");
-                        continue;
-                    }
-
-                    currentBets.add(bet);
-                    
-                    //  Clean success message
-                    System.out.println(" Bet placed: $" + String.format("%.1f", amountBet) + " on " + formatBetDisplay(bet));
-                    System.out.println(); 
-
-                } catch (Exception e) {
-                    System.out.println(" Invalid input! Please try again.");
-                    scanner.nextLine(); 
-                    continue;
-                }
-            }
-            
-            // Only proceed if we have bets
             if (currentBets.isEmpty()) {
-                System.out.println("No bets placed.");
+                System.out.println("No bets placed. Round over.");
                 return;
             }
 
-            // Spin the wheel
-            System.out.println("\nSpinning the wheel...");
-            Thread.sleep(1000); 
-            
+            flushScreen();
+            flushScreen();
+            typeWriter("\nSpinning the wheel......", 80);
+            flushScreen();
+
             RouletteNumber winner = wheel.spin();
-            
             if (winner == null) {
-                System.out.println(" ERROR: Wheel spin failed!");
+                System.err.println("ERROR: Wheel spin failed!");
                 return;
             }
-            
-            showTableWithWinner(winner);
-            
-            System.out.println("Winner: " + (winner.getNumber() == 37 ? "00" : winner.getNumber()) + " " + winner.getColor());
-            System.out.println();
-            
-            // Calculate and show results
-            double totalBets = 0;
-            double totalPayouts = 0;
-            
-            System.out.println(" RESULTS:");
-            
-            for (RouletteBet bet : currentBets) {
-                totalBets += bet.getAmount();
-                
-                if (bet.checkWin(winner)) {
-                    double betAmount = bet.getAmount();
-                    double payout = bet.calculatePayout();
-                    totalPayouts += betAmount + payout;
-                    
-                    System.out.println("✅ WIN! " + formatBetDisplay(bet) + " pays $" + 
-                                       String.format("%.2f", betAmount + payout));
-                } else {
-                    System.out.println("❌ LOSE: " + formatBetDisplay(bet) + " (-$" + 
-                                       String.format("%.2f", bet.getAmount()) + ")");
-                }
-            }
-            
-            // Update balance and show summary
-            playerCurrentMoneyAmount = playerCurrentMoneyAmount - totalBets + totalPayouts;
-            double netResult = totalPayouts - totalBets;
-            
-            System.out.println();
-            if (netResult > 0) {
-                System.out.println(" You won $" + String.format("%.2f", netResult) + "!");
-            } else if (netResult < 0) {
-                System.out.println(" You lost $" + String.format("%.2f", Math.abs(netResult)));
-            } else {
-                System.out.println(" Break even!");
-            }
-            
-            System.out.println(" New Balance: $" + String.format("%.2f", playerCurrentMoneyAmount));
-            System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-            System.out.println();
-            
-            // Save bets for next round
-            if (previousBets != null && currentBets != null) {
-                previousBets.clear();
-                previousBets.addAll(currentBets);
-            }
+
+            // Display table with winner
+            RouletteTable table = new RouletteTable(winner.getNumber());
+            System.out.println(table.toString());
+
+            processPlayerResults(player, winner, currentBets);
+
         } catch (Exception e) {
-            System.out.println("ERROR in playRound: " + e.getMessage());
+            System.err.println("ERROR in playRound: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    //Streamlined betting info (shown once)
-    private void showStreamlinedBettingInfo() {
-        System.out.println(" Your Balance: $" + String.format("%.2f", playerCurrentMoneyAmount));
-        System.out.println(" Minimum bet: $10 | Maximum: $5000");
-        System.out.println();
-        
-        // Show previous bets if any (compact format)
-        if (previousBets != null && !previousBets.isEmpty()) {
-            System.out.println(" Last round: ");
-            for (RouletteBet bet : previousBets) {
-                if (bet != null) {
-                    System.out.println("   $" + String.format("%.0f", bet.getAmount()) + " on " + formatBetDisplay(bet));
+    private void playMultiplayerRound() {
+        try {
+            for (Player player : activePlayers) {
+                playerBets.get(player).clear();
+            }
+
+            System.out.println("New Round! Everyone, place your bets!");
+            System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+            boolean anyBetsPlaced = false;
+            for (Player player : activePlayers) {
+                System.out.println();
+                System.out.println(player.getUsername().toUpperCase() + "'S TURN");
+                List<RouletteBet> currentPlayerBets = playerBets.get(player);
+                collectBetsFromPlayer(player, currentPlayerBets);
+                if (!currentPlayerBets.isEmpty()) {
+                    anyBetsPlaced = true;
                 }
             }
-            System.out.println();
+
+            if (!anyBetsPlaced) {
+                System.out.println("No bets placed this round. Skipping spin.");
+                return;
+            }
+
+            flushScreen();
+            System.out.println("SPINNING THE WHEEL FOR ALL PLAYERS...");
+            Thread.sleep(2000);
+
+            RouletteNumber winner = wheel.spin();
+            if (winner == null) {
+                System.err.println("ERROR: Wheel spin failed!");
+                return;
+            }
+
+            RouletteTable table = new RouletteTable(winner.getNumber());
+            System.out.println(table.toString());
+
+            System.out.println("RESULTS FOR ALL PLAYERS:");
+            System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+            for (Player player : activePlayers) {
+                processPlayerResults(player, winner, playerBets.get(player));
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error in multiplayer round: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    
-    private RouletteBet createBetFromInput(String input, double amount) {
-        // Handle help command
-        if (input.equals("HELP")) {
-            showDetailedHelp();
-            return null;
-        }
-        
-        // Try inside bets first
-        if (isInsideBetInput(input)) {
-            RouletteBet bet = parseInsideBet(input, amount);
-            if (bet != null) return bet;
-            
-            // Try single number
+    private void collectBetsFromPlayer(Player player, List<RouletteBet> betsList) {
+        System.out.println(ANSI_YELLOW + " Balance:" + ANSI_RESET + " $"
+                + String.format("%.2f", player.getAccount().getBalance()));
+
+        double insideTotal = 0;
+        boolean firstBetPlaced = false;
+
+        while (true) {
             try {
-                int number = Integer.parseInt(input);
-                if (number == -1) number = 37;
-                return new RouletteBet(number, amount);
+                if (!firstBetPlaced) {
+                    System.out.println();
+                    System.out.println(
+                            ANSI_YELLOW + "Input Examples:" + ANSI_RESET + " RED, 7, 1-2, 1-2-3, 1-2-4-5, TOPLINE");
+                    System.out.println();
+                    System.out.print(ANSI_GREEN + "Which bet will you choose?: "
+                            + ANSI_RESET);
+                } else {
+                    System.out.println();
+                    System.out.println(ANSI_YELLOW + "Current Bets:" + ANSI_RESET);
+                    for (RouletteBet bet : betsList) {
+                        String betDisplay = formatBetDisplay(bet);
+                        // print current bets
+                        System.out.println("  " + betDisplay);
+                    }
+                    System.out.println();
+                    System.out.print(
+                            ANSI_GREEN + "Would you like to place another bet or spin? (bet/spin): " + ANSI_RESET);
+                    String choice = scanner.next().trim().toLowerCase();
+                    if (choice.equals("spin") || choice.equals("done")) {
+                        // Enforce aggregate minimum for inside bets
+                        if (insideTotal > 0 && insideTotal < 10) {
+                            System.out.println(ANSI_RED + "Aggregate minimum for inside bets is $10." + ANSI_RESET);
+                            continue;
+                        }
+                        break;
+                    } else if (!choice.equals("bet")) {
+                        System.out.println(
+                                ANSI_RED + "Please type 'bet' to place another bet or 'spin' to spin." + ANSI_RESET);
+                        continue;
+                    }
+                    // Flush and show betting options before showing current bets
+                    flushScreen();
+                    showBettingMenu(previousPlayerBets.getOrDefault(player, new ArrayList<>()));
+                    System.out.println();
+                    System.out.println(ANSI_YELLOW + "Current Bets:" + ANSI_RESET);
+                    for (RouletteBet bet : betsList) {
+                        String betDisplay = formatBetDisplay(bet);
+                        System.out.println("  " + betDisplay);
+                    }
+                    System.out.println();
+                    System.out.println(
+                            ANSI_YELLOW + "Input Examples:" + ANSI_RESET + " RED, 7, 1-2, 1-2-3, 1-2-4-5, TOPLINE");
+                    System.out.println();
+                    System.out.print(ANSI_GREEN + "Which bet will you choose? (enter 'done' to spin): "
+                            + ANSI_RESET);
+                }
+
+                String betInput = scanner.next().toUpperCase().trim();
+
+                if (betInput.equals("DONE")) {
+                    if (insideTotal > 0 && insideTotal < 10) {
+                        System.out.println(ANSI_RED + "Aggregate minimum for inside bets is $10." + ANSI_RESET);
+                        continue;
+                    }
+                    break;
+                }
+
+                System.out.println();
+                System.out.print(ANSI_GREEN + "How much do you want to bet? (use '0.00' format): " + ANSI_RESET);
+                if (!scanner.hasNextDouble()) {
+                    System.out.println(ANSI_RED + "Invalid amount! Please enter a number." + ANSI_RESET);
+                    scanner.next();
+                    continue;
+                }
+
+                double amountBet = scanner.nextDouble();
+
+                if (amountBet < 1) {
+                    System.out.println(ANSI_RED + "Minimum chip value is $1." + ANSI_RESET);
+                    continue;
+                }
+
+                RouletteBet bet = createBetFromInput(betInput, amountBet);
+
+                if (bet == null || !bet.validateBet()) {
+                    System.out.println(
+                            ANSI_RED + "Invalid bet!" + ANSI_RESET);
+                    continue;
+                }
+
+                // Determine bet type for limits
+                String type = bet.getBetType();
+                boolean isInside = type.equals("STRAIGHT_UP") || type.equals("SPLIT") || type.equals("CORNER") ||
+                        type.equals("STREET") || type.equals("DOUBLE_STREET") || type.equals("TOP_LINE");
+                boolean isOutsideEven = type.equals("RED") || type.equals("BLACK") || type.equals("ODD") ||
+                        type.equals("EVEN") || type.equals("1-18") || type.equals("19-36");
+                boolean isOutside2to1 = type.equals("COLUMN1") || type.equals("COLUMN2") || type.equals("COLUMN3") ||
+                        type.equals("1ST12") || type.equals("2ND12") || type.equals("3RD12");
+
+                // Minimums
+                if (isInside) {
+                    insideTotal += amountBet;
+                } else if (isOutsideEven && amountBet < 10) {
+                    System.out.println(ANSI_RED + "Minimum bet for outside even money is $10." + ANSI_RESET);
+                    continue;
+                } else if (isOutside2to1 && amountBet < 10) {
+                    System.out.println(ANSI_RED + "Minimum bet for outside 2 to 1 is $10." + ANSI_RESET);
+                    continue;
+                }
+
+                // Maximums
+                if (isInside && amountBet > 200) {
+                    System.out.println(ANSI_RED + "Maximum inside bet is $200." + ANSI_RESET);
+                    continue;
+                } else if (isOutsideEven && amountBet > 5000) {
+                    System.out.println(ANSI_RED + "Maximum even money bet is $5000." + ANSI_RESET);
+                    continue;
+                } else if (isOutside2to1 && amountBet > 2500) {
+                    System.out.println(ANSI_RED + "Maximum 2 to 1 bet is $2500." + ANSI_RESET);
+                    continue;
+                }
+
+                if (amountBet > player.getAccount().getBalance()) {
+                    System.out.println(ANSI_RED + "Not enough money! You have $"
+                            + String.format("%.2f", player.getAccount().getBalance()) + ANSI_RESET);
+                    continue;
+                }
+
+                betsList.add(bet);
+                player.getAccount().withdraw(amountBet); // Deduct bet amount immediately
+                flushScreen();
+                System.out.println();
+                System.out.println(
+                        ANSI_YELLOW + "Bet Placed!" + ANSI_RESET + ANSI_RED + " (-$" + String.format("%.1f", amountBet)
+                                + ")" + ANSI_RESET);
+                System.out.println(ANSI_YELLOW + "Current Balance:" + ANSI_RESET + " $"
+                        + String.format("%.2f", player.getAccount().getBalance()));
+
+                firstBetPlaced = true;
+
+            } catch (Exception e) {
+                System.out.println(ANSI_RED + " Invalid input! Please try again." + ANSI_RESET);
+                scanner.nextLine();
+            }
+        }
+
+        System.out.println(player.getUsername() + " placed " + betsList.size() + " bet(s). ");
+        List<RouletteBet> currentPrevBets = previousPlayerBets.getOrDefault(player, new ArrayList<>());
+        currentPrevBets.clear();
+        currentPrevBets.addAll(betsList);
+        previousPlayerBets.put(player, currentPrevBets);
+    }
+
+    private void processPlayerResults(Player player, RouletteNumber winner, List<RouletteBet> bets) {
+        System.out.println(
+                "\u001B[32mWinning Number: " + (winner.getNumber() == 37 ? "00" : winner.getNumber()) + "\u001B[0m");
+        System.out.println();
+        System.out.println(player.getUsername().toUpperCase() + ":");
+
+        double totalPayouts = 0;
+
+        for (RouletteBet bet : bets) {
+            boolean isWin = bet.checkWin(winner);
+            bet.setWin(isWin);
+            if (isWin) {
+                double payout = bet.calculatePayout();
+                totalPayouts += bet.getAmount() + payout;
+
+                System.out.println("\n" + ANSI_GREEN + "    WIN!: " + formatBetDisplay(bet) + " (+ $"
+                        + String.format("%.2f", totalPayouts) + ")" + ANSI_RESET);
+            } else {
+                System.out.println(ANSI_RED + "    LOSE!: " + formatBetDisplay(bet) + " (- $"
+                        + String.format("%.2f", bet.getAmount()) + ")" + ANSI_RESET);
+            }
+        }
+
+        double netResult = totalPayouts - bets.stream().mapToDouble(RouletteBet::getAmount).sum();
+
+        if (netResult > 0) {
+            playerWins.put(player, playerWins.getOrDefault(player, 0.0) + netResult);
+        } else if (netResult < 0) {
+            playerLosses.put(player, playerLosses.getOrDefault(player, 0.0) + Math.abs(netResult));
+        }
+
+        if (netResult > 0) {
+
+            System.out.println(
+                    "\n" + ANSI_GREEN + "    TOTAL WON: +$" + String.format("%.2f", netResult) + "!" + ANSI_RESET);
+        } else if (netResult < 0) {
+            System.out
+                    .println("\n" + ANSI_RED + "    TOTAL LOST: -$" + String.format("%.2f", Math.abs(netResult))
+                            + ANSI_RESET);
+        } else {
+            System.out.println("\n" + ANSI_YELLOW + "    Break even!" + ANSI_RESET);
+        }
+
+        System.out.println();
+
+        if (totalPayouts > 0) {
+            player.getAccount().deposit(totalPayouts);
+        }
+
+    }
+
+    private void showFinalBalances() {
+        flushScreen();
+        System.out.println(" FINAL BALANCES:");
+        System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        System.out.println();
+        activePlayers.sort((p1, p2) -> Double.compare(p2.getAccount().getBalance(), p1.getAccount().getBalance()));
+
+        for (int i = 0; i < activePlayers.size(); i++) {
+            Player player = activePlayers.get(i);
+            String medal = (i == 0) ? "1st Place" : (i == 1) ? "2nd Place" : (i == 2) ? "3rd Place" : "👤";
+            double wins = playerWins.getOrDefault(player, 0.0);
+            double losses = playerLosses.getOrDefault(player, 0.0);
+            double balance = player.getAccount().getBalance();
+            System.out.println(medal + ": " + player.getUsername() +
+                    ANSI_GREEN + " Wins: $" + String.format("%.2f", wins) +
+                    ANSI_RESET + " |" + ANSI_RED + " Losses: $" + String.format("%.2f", losses) +
+                    ANSI_RESET + " | " + ANSI_YELLOW + "New Balance: $" + String.format("%.2f", balance) + ANSI_RESET);
+        }
+        System.out.println();
+        System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        System.out.println();
+        System.out.println(ANSI_PURPLE+"Thanks for playing roulette!"+ANSI_RESET);
+    }
+
+    private void flushScreen() {
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
+    }
+
+    // Helper for formatting
+    public String formatLine(String left, String pays, int paysColumn) {
+        return left.length() >= paysColumn
+                ? left + " " + pays
+                : String.format("%-" + paysColumn + "s%s", left, pays);
+    }
+
+    private void showBettingMenu(List<RouletteBet> previousBets) {
+        flushScreen();
+        int width = 74;
+        int paysColumn = 55;
+        String border = ANSI_PURPLE + String.format("%" + width + "s", "").replace(' ', '═') + ANSI_RESET;
+        String minMaxHeader = "TABLE MINIMUM & MAXIMUM BETS";
+        String bettingOptions = "BETTING OPTIONS";
+        // SINGLE NUMBER
+        System.out.println(border);
+        System.out.println(String.format("%" + ((width + bettingOptions.length()) / 2) + "s", bettingOptions));
+        System.out.println(border);
+
+        // SINGLE NUMBER
+        System.out.println(formatLine(
+                ANSI_YELLOW + "  SINGLE NUMBER:" + ANSI_RESET + " " + "0-36 ('00' for double zero)",
+                ANSI_YELLOW + "Pays 35:1" + ANSI_RESET, paysColumn));
+
+        System.out.println();
+        System.out.println(ANSI_PURPLE + "  INSIDE BETS" + ANSI_RESET);
+
+        System.out.println(formatLine(
+                ANSI_YELLOW + "    SPLIT:" + ANSI_RESET + " Two adjacent numbers (1-2)",
+                ANSI_YELLOW + "Pays 17:1" + ANSI_RESET, paysColumn));
+        System.out.println(formatLine(
+                ANSI_YELLOW + "    STREET:" + ANSI_RESET + " Three numbers in a row (1-2-3)",
+                ANSI_YELLOW + "Pays 11:1" + ANSI_RESET, paysColumn));
+        System.out.println(formatLine(
+                ANSI_YELLOW + "    CORNER:" + ANSI_RESET + " Four numbers (1-2-4-5)",
+                ANSI_YELLOW + "Pays 8:1" + ANSI_RESET, paysColumn));
+        System.out.println(formatLine(
+                ANSI_YELLOW + "    DOUBLE STREET:" + ANSI_RESET + " Six numbers (1-2-3-4-5-6)",
+                ANSI_YELLOW + "Pays 5:1" + ANSI_RESET, paysColumn));
+        System.out.println(formatLine(
+                ANSI_YELLOW + "    TOP LINE:" + ANSI_RESET + " 0-00-1-2-3",
+                ANSI_YELLOW + "Pays 6:1" + ANSI_RESET, paysColumn));
+
+        System.out.println();
+        System.out.println(ANSI_PURPLE + "  OUTSIDE BETS: " + ANSI_RESET);
+
+        System.out.println(formatLine(
+                ANSI_YELLOW + "    COLORS:" + ANSI_RESET + " RED, BLACK",
+                ANSI_YELLOW + "Pays 1:1" + ANSI_RESET, paysColumn));
+        System.out.println(formatLine(
+                ANSI_YELLOW + "    EVENS:" + ANSI_RESET + " ODD, EVEN",
+                ANSI_YELLOW + "Pays 1:1" + ANSI_RESET, paysColumn));
+        System.out.println(formatLine(
+                ANSI_YELLOW + "    RANGES:" + ANSI_RESET + " 1-18, 19-36",
+                ANSI_YELLOW + "Pays 1:1" + ANSI_RESET, paysColumn));
+        System.out.println(formatLine(
+                ANSI_YELLOW + "    DOZENS:" + ANSI_RESET + " 1ST12, 2ND12, 3RD12",
+                ANSI_YELLOW + "Pays 2:1" + ANSI_RESET, paysColumn));
+        System.out.println(formatLine(
+                ANSI_YELLOW + "    COLUMNS:" + ANSI_RESET + " COLUMN1, COLUMN2, COLUMN3",
+                ANSI_YELLOW + "Pays 2:1" + ANSI_RESET, paysColumn));
+        System.out.println();
+        System.out.println(border);
+
+        // Table Minimum and Maximum Bets Header
+        System.out.println(String.format("%" + ((width + minMaxHeader.length()) / 2) + "s", minMaxHeader));
+        System.out.println(border);
+        System.out.println(ANSI_YELLOW + "  MINIMUMS:" + ANSI_RESET);
+        System.out.println("    Minimum bet outside $10");
+        System.out.println("    Aggregate Minimum bet inside $10");
+        System.out.println("    Minimum chip value $1");
+        System.out.println(ANSI_YELLOW + "  MAXIMUMS:" + ANSI_RESET);
+        System.out.println("    $5000 Even Money");
+        System.out.println("    $2500 2 to 1");
+        System.out.println("    $200 Any way inside");
+        System.out.println(border);
+    }
+
+    private RouletteBet createBetFromInput(String input, double amount) {
+        // If it contains a number
+        if (input.matches("\\d{1,2}|00")) {
+            int number = input.equals("00") ? 37 : Integer.parseInt(input);
+            return new RouletteBet(number, amount);
+        }
+
+        if (input.contains("-")) {
+            String[] parts = input.split("-");
+            int[] numbers = new int[parts.length];
+            try {
+                for (int i = 0; i < parts.length; i++) {
+                    numbers[i] = parts[i].equals("00") ? 37 : Integer.parseInt(parts[i]);
+                }
+                String betType = determineBetType(numbers);
+                if (betType != null) {
+                    return new RouletteBet(betType, numbers, amount);
+                }
             } catch (NumberFormatException e) {
                 return null;
             }
         }
-        
-        // Handle outside bets
+
+        // Handle Outside bets
         return new RouletteBet(input, amount);
     }
 
-    //Show detailed help only when requested
-    private void showDetailedHelp() {
-        System.out.println();
-        System.out.println(" ROULETTE BETTING GUIDE:");
-        System.out.println();
-        System.out.println(" SINGLE NUMBERS:");
-        System.out.println("   7, 23, 0, -1 (for 00) → Pays 35:1");
-        System.out.println();
-        System.out.println(" INSIDE BETS:");
-        System.out.println("   1-2 (split) → Pays 17:1");
-        System.out.println("   1-2-3 (street) → Pays 11:1");  
-        System.out.println("   1-2-4-5 (corner) → Pays 8:1");
-        System.out.println("   1-2-3-4-5-6 (double street) → Pays 5:1");
-        System.out.println("   TOPLINE → Pays 6:1");
-        System.out.println();
-        System.out.println(" OUTSIDE BETS:");
-        System.out.println("   RED, BLACK, ODD, EVEN, HIGH, LOW → Pays 1:1");
-        System.out.println("   1ST12, 2ND12, 3RD12 → Pays 2:1");
-        System.out.println("   COLUMN1, COLUMN2, COLUMN3 → Pays 2:1");
-        System.out.println();
+    private String determineBetType(int[] numbers) {
+        java.util.Arrays.sort(numbers);
+
+        switch (numbers.length) {
+            case 2:
+                if (validateSplit(numbers))
+                    return "SPLIT";
+                break;
+            case 3:
+                if (validateStreet(numbers))
+                    return "STREET";
+                break;
+            case 4:
+                if (validateCorner(numbers))
+                    return "CORNER";
+                break;
+            case 6:
+                if (validateDoubleStreet(numbers))
+                    return "DOUBLE_STREET";
+                break;
+            default:
+                return null;
+        }
+        return null;
     }
 
-    private void showBettingMenu() {
-        System.out.println("=== BETTING OPTIONS ===");
-        System.out.println("SINGLE NUMBER: Numbers: 0-36 (or -1 for 00) - Pays 35:1");
-        System.out.println();
-        System.out.println("INSIDE BETS");
-        System.out.println("  SPLIT: Two adjacent numbers (1-2) - Pays 17:1");
-        System.out.println("  STREET: Three numbers in row (1-2-3) - Pays 11:1");
-        System.out.println("  CORNER: Four numbers (1-2-4-5) - Pays 8:1");
-        System.out.println("  DOUBLE STREET: Six numbers (1-2-3-4-5-6) - Pays 5:1");
-        System.out.println("  TOP LINE: 0-00-1-2-3 - Pays 6:1");
-        System.out.println();
-        System.out.println("OUTSIDE BETS:");
-        System.out.println("  Colors: RED, BLACK - Pays 1:1");
-        System.out.println("  Evens: ODD, EVEN - Pays 1:1");
-        System.out.println("  Ranges: HIGH, LOW - Pays 1:1");
-        System.out.println("  Dozens: 1ST12, 2ND12, 3RD12 - Pays 2:1");
-        System.out.println("  Columns: COLUMN1, COLUMN2, COLUMN3 - Pays 2:1");
-        System.out.println("========================");
-    
-        // Add null checks for previous bets
-        if (previousBets != null && !previousBets.isEmpty()) {
-            System.out.println("=== PREVIOUS ROUND BETS ===");
-            for (RouletteBet bet : previousBets) {
-                if (bet != null) {
-                    try {
-                        if (bet.getBetType() != null && bet.getBetType().equals("STRAIGHT_UP")) {
-                            System.out.println("$" + bet.getAmount() + " on number " + bet.getNumberBet());
-                        } else if (bet.getBetType() != null) {
-                            System.out.println("$" + bet.getAmount() + " on " + formatBetDisplay(bet));
-                        } else {
-                            System.out.println("$" + bet.getAmount() + " on unknown bet type");
-                        }
-                    } catch (Exception e) {
-                        System.out.println("Error displaying previous bet: " + e.getMessage());
-                    }
-                }
+    private boolean validateSplit(int[] numbers) {
+        if (numbers.length != 2)
+            return false;
+        int a = numbers[0], b = numbers[1];
+        if ((a == 0 && b == 37) || (a == 37 && b == 0))
+            return true;
+        if (Math.abs(a - b) == 1 && a / 3 == b / 3)
+            return true;
+        if (Math.abs(a - b) == 3)
+            return true;
+        return false;
+    }
+
+    private boolean validateStreet(int[] numbers) {
+        if (numbers.length != 3)
+            return false;
+        int min = numbers[0];
+        return (numbers[1] == min + 1) && (numbers[2] == min + 2) && (min % 3 == 1);
+    }
+
+    private boolean validateCorner(int[] numbers) {
+        if (numbers.length != 4)
+            return false;
+        java.util.Arrays.sort(numbers);
+        int a = numbers[0], b = numbers[1], c = numbers[2], d = numbers[3];
+        return (b == a + 1) && (c == a + 3) && (d == a + 4) && (a % 3 != 0);
+    }
+
+    private boolean validateDoubleStreet(int[] numbers) {
+        if (numbers.length != 6)
+            return false;
+        java.util.Arrays.sort(numbers);
+        if (!validateStreet(new int[] { numbers[0], numbers[1], numbers[2] }))
+            return false;
+        if (!validateStreet(new int[] { numbers[3], numbers[4], numbers[5] }))
+            return false;
+        return numbers[3] == numbers[2] + 1;
+    }
+
+    private String formatBetDisplay(RouletteBet bet) {
+        if (bet.getBetType().equals("STRAIGHT_UP")) {
+            int num = bet.getNumberBet();
+            return num == 37 ? "00" : String.valueOf(num);
+        } else if (bet.getBetType().equals("SPLIT") || bet.getBetType().equals("CORNER") ||
+                bet.getBetType().equals("STREET") || bet.getBetType().equals("DOUBLE_STREET")) {
+            StringBuilder sb = new StringBuilder();
+            int[] numbers = bet.getNumbers();
+            for (int i = 0; i < numbers.length; i++) {
+                if (i > 0)
+                    sb.append("-");
+                sb.append(numbers[i] == 37 ? "00" : numbers[i]);
             }
-            System.out.println("============================");
+            return sb.toString();
+        } else if (bet.getBetType().equals("TOP_LINE")) {
+            return "TOPLINE";
+        } else {
+            return bet.getBetType();
         }
     }
 
-    private void tableLimits() {
-        System.out.println("===Table Minimum and Maximum bets===");
-        System.out.println("Minimum bet outside $10");
-        System.out.println("Aggregate Minimun bet inside $10");
-        System.out.println("Minimum chip value $1");
-        System.out.println("-Maximums");
-        System.out.println("$5000 Even Money");
-        System.out.println("$2500 2 to 1");
-        System.out.println("$200 Any way inside");
-        System.out.println("====================================");
-    }
-
-    public double getCurrentBalance() {
-        return playerCurrentMoneyAmount;
-    }
-
+    // GameInterface required methods
     @Override
     public boolean add(Player player) {
-        this.currentPlayer = player;
-        this.playerCurrentMoneyAmount = player.getAccount().getBalance();
         return true;
     }
 
     @Override
     public boolean remove(Player player) {
-        this.currentPlayer = null;
         return true;
     }
 
     @Override
     public void play() {
-        System.out.println("Welcome to Roulette!");
-        
-        while (playerCurrentMoneyAmount >= 10.0) {
-            System.out.println("Your Money: $" + playerCurrentMoneyAmount);
-            playRound();
-            
-            System.out.println("Try your luck again? (y/n)");
-            String answer = scanner.next();
-            
-            if (answer.equals("n") || answer.equals("no")) {
-                break;
-            }
-        }
-        
-        if (currentPlayer != null) {
-            updatePlayerBalance();
-        }
+        playGame();
     }
 
     @Override
@@ -382,7 +645,7 @@ public class RouletteGame implements GameInterface {
 
     @Override
     public int getMinimumBet() {
-        return 10;
+        return 1;
     }
 
     @Override
@@ -390,680 +653,12 @@ public class RouletteGame implements GameInterface {
         return 5000;
     }
 
-    @Override
-    public void launch(Player player) {
-        this.currentPlayer = player;
-        this.playerCurrentMoneyAmount = player.getAccount().getBalance();
-        
-        System.out.println("Welcome to Roulette, " + player.getUsername() + "!");
-        System.out.println("Starting balance: $" + String.format("%.2f", playerCurrentMoneyAmount));
-        
-        if (wheel == null) {
-            this.wheel = new Roulette();
-        }
-        
-        try {
-            wheel.createWheel();
-        } catch (Exception e) {
-            System.out.println("ERROR creating wheel: " + e.getMessage());
-            return;
-        }
-        
-        play();
-        updatePlayerBalance();
-    }
-
-    public void launchMultiplayer(List<Player> players) {
-        if (players.size() < 2) {
-            System.out.println("Need at least 2 Players for multiplayer!");
-            return;
-        }
-
-        this.activePlayers = new ArrayList<>(players);
-        this.isMultiplayer = true;
-
-        for (Player player : activePlayers) {
-            playerBets.put(player, new ArrayList<>());
-            previousPlayerBets.put(player, new ArrayList<>());
-        }
-
-        System.out.println("The more, the merrier!");
-        System.out.print("Players: ");
-        for (int i =0; i < players.size(); i++) {
-            System.out.print(players.get(i).getUsername());
-            if (i < players.size() - 1) System.out.print(", ");
+    private void typeWriter(String text, int delayMillis) throws InterruptedException {
+        for (char c : text.toCharArray()) {
+            System.out.print(c);
+            System.out.flush();
+            Thread.sleep(delayMillis);
         }
         System.out.println();
-        System.out.println();
-
-        playMultiplayerGame();
-    }
-
-    private void updatePlayerBalance() {
-        if (currentPlayer != null) {
-            double originalBalance = currentPlayer.getAccount().getBalance();
-            double difference = playerCurrentMoneyAmount - originalBalance;
-            
-            if (difference > 0) {
-                currentPlayer.getAccount().deposit(difference);
-            } else if (difference < 0) {
-                currentPlayer.getAccount().withdraw(Math.abs(difference));
-            }
-        }
-    }
-
-    private boolean isInsideBetInput(String input) {
-        // Check if input contains dashes (indicating multi-number bet)
-        if (input.contains("-")) {
-            return true;
-        }
-        // if special inside bet
-        if (input.equalsIgnoreCase("TOPLINE") || input.equalsIgnoreCase("TOP-LINE")) {
-            return true;
-        }
-        // Check if single number
-        try {
-            int number = Integer.parseInt(input);
-            return (number >= -1 && number <= 36);
-        } catch (NumberFormatException e) {
-            return false;
-        }
-
-    }
-
-    private RouletteBet parseInsideBet(String input, double amount) {
-        input = input.toUpperCase().trim();
-
-        //Hanndles TOP LINE
-        if (input.equals("TOPLINE") || input.equals("TOP-LINE")) {
-            int[] numbers = {0, 37, 1, 2, 3};
-            return new RouletteBet("TOP_LINE", numbers, amount);
-        }
-
-        //Handles dashed number(mulitple bets)
-        if (input.contains("-")) {
-            String[] parts = input.split("-");
-            int[] numbers = new int[parts.length];
-
-            try{
-                for (int i =0; i < parts.length; i++) {
-                    if (parts[i].equals("00")) {
-                        numbers[i] = 37; //00 = 37
-                    } else {
-                        numbers[i] = Integer.parseInt(parts[i]);
-                    }
-                }
-
-                // Bet type based on number count and validate
-                String betType = determineBetType(numbers);
-                if (betType != null && validateNumberCombination(numbers, betType)) {
-                    return new RouletteBet(betType, numbers, amount);
-                }
-            } catch (NumberFormatException e) {
-                return null;
-            }
-        }
-        return null;
-    }    
-
-    private String determineBetType(int[] numbers) {
-        switch (numbers.length) {
-            case 2:
-                return "SPLIT";
-            case 3:
-                return "STREET";
-            case 4:
-                return "CORNER";
-            case 6:
-                return "DOUBLE_STREET";
-            default: 
-                return null;
-        }
-    }
-
-    private boolean validateNumberCombination(int[] numbers, String betType) {
-        //Apparetnly you can sort for easier validation, GTK
-        java.util.Arrays.sort(numbers);
-
-        switch(betType) {
-            case "SPLIT":
-                return validateSplit(numbers);
-            case "STREET":
-                return validateStreet(numbers);
-            case "CORNER":
-                return validateCorner(numbers);
-            case "DOUBLE_STREET":
-                return validateDoubleStreet(numbers);
-            default:
-                return false;
-        }
-    }
-
-    private boolean validateSplit(int[] numbers) {
-        if (numbers.length != 2) return false;
-
-        int a = numbers[0], b = numbers[1];
-
-        //Handle 0 and 00 split
-        if ((a == 0 && b == 37) || (a == 37 && b == 0)) return true;
-
-        //Horizontal splits (adjacent in same row)
-        if (Math.abs(a - b) == 1 && a / 3 == b / 3) return true;
-
-        //Vertical splits (one # above/below)
-        if (Math.abs(a - b) == 3) return true;
-
-        return false;
-    }
-
-    private boolean validateStreet(int[] numbers) {
-        if (numbers.length != 3) return false;
-
-        // Street must be three consecutive numbers in same row
-        int min = numbers[0];
-        return (numbers[1] == min + 1) && (numbers[2] == min + 2) && (min % 3 == 1);
-    }
-
-    private boolean validateCorner(int[] numbers) {
-        if (numbers.length != 4) return false;
-
-        //Corner must form a 2x2 square on the layout
-        java.util.Arrays.sort(numbers);
-        int a = numbers[0], b = numbers[1], c = numbers[2], d = numbers[3];
-
-        //check valid corner pattern
-        return (b == a + 1) && (c == a +3) && (d == a + 4) && (a % 3 != 0);
-    }
-
-    private boolean validateDoubleStreet(int[] numbers) {
-        if (numbers.length != 6) return false;
-
-        java.util.Arrays.sort(numbers);
-        //check if 1st three is street
-        if (!validateStreet(new int[]{numbers[0], numbers[1], numbers[2]})) return false;
-        //check if last three is street
-        if (!validateStreet(new int[]{numbers[3], numbers[4], numbers[5]})) return false;
-
-        return numbers[3] == numbers[2] + 1;
-    }
-
-    private void showInsideBetExamples() {
-        System.out.println("Inside bet examples:");
-        System.out.println(" Split: 1-2, 4-5, 0-00");
-        System.out.println(" Street: 1-2-3, 7-8-9");
-        System.out.println(" Corner: 1-2-4-5, 8-9-11-12");
-        System.out.println(" Double Street: 1-2-3-4-5-6");
-        System.out.println(" Top line: TOPLINE");
-    }
-
-    // bet display formatting
-    private String formatBetDisplay(RouletteBet bet) {
-        if (bet.getBetType().equals("STRAIGHT_UP")) {
-            int num = bet.getNumberBet();
-            return num == 37 ? "00" : String.valueOf(num);
-        } else if (bet.getBetType().equals("SPLIT") || bet.getBetType().equals("CORNER") ||
-                   bet.getBetType().equals("STREET") || bet.getBetType().equals("DOUBLE_STREET")) {
-            StringBuilder sb = new StringBuilder();
-            int[] numbers = bet.getNumbers();
-            for (int i = 0; i < numbers.length; i++) {
-                if (i > 0) sb.append("-");
-                sb.append(numbers[i] == 37 ? "00" : numbers[i]);
-            }
-            return sb.toString() + " (" + bet.getBetType() + ")";
-        } else if (bet.getBetType().equals("TOP_LINE")) {
-            return "TOPLINE";
-        } else {
-            return bet.getBetType();
-        }
-    }
-
-    private void playMultiplayerGame() {
-        while (true) {
-            try {
-                playMultiplayerRound();
-
-                System.out.println("One more? (y/n)");
-                if (!scanner.next().toLowerCase().startsWith("y")) {
-                    break;
-                }
-                
-            } catch (Exception e) {
-                System.out.println("Error in multiplayer game:" + e.getMessage());
-                break;
-            }
-        }
-        
-        showFinalBalances();
-    }
-
-    private void playMultiplayerRound() {
-        try{
-            //Clear player bets
-            for (Player player : activePlayers) {
-                playerBets.get(player).clear();
-            }
-
-            System.out.println("New Round! Everyone, Place your bets!");
-            System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-
-            //Collections
-            for (Player player : activePlayers) {
-                collectBetsFromPlayer(player);
-            }
-
-            //Checks if any bets were placed
-            boolean anyBets = false;
-            for (List<RouletteBet> bets : playerBets.values()) {
-                if (!bets.isEmpty()) {
-                    anyBets = true;
-                    break;
-                }
-            }
-                
-            if (!anyBets) {
-                System.out.println("No bets placed!");
-                return;
-            }
-
-            spinForAllPlayers();
-            
-        } catch (Exception e) {
-            System.out.println("Error in multiplayer round:" + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    private void collectBetsFromPlayer(Player player) {
-        System.out.println();
-        System.out.println(player.getUsername().toUpperCase() + "'S TURN");
-        System.out.println(" Balance: $" + String.format("%.2f", player.getAccount().getBalance()));
-        
-        // Show previous bets for this player
-        List<RouletteBet> prevBets = previousPlayerBets.get(player);
-        if (prevBets != null && !prevBets.isEmpty()) {
-            System.out.println("Last round: ");
-            for (RouletteBet bet : prevBets) {
-                System.out.println("   $" + String.format("%.0f", bet.getAmount()) + " on " + formatBetDisplay(bet));
-            }
-        }
-        
-        System.out.println();
-        System.out.println("Place your bets!");
-
-        List<RouletteBet> currentPlayerBets = playerBets.get(player);
-        
-        while (true) {
-            try {
-                System.out.println("Which bet will you choose? (or 'done' to spin)");
-                System.out.println("Examples: RED, 7, 1-2, 1-2-3, 1-2-4-5, TOPLINE");
-                
-                String betInput = scanner.next().toUpperCase().trim();
-                
-                if (betInput.equals("DONE")) {
-                    break;
-                }
-
-                System.out.println("How much do you want to bet?");
-                
-                if (!scanner.hasNextDouble()) {
-                    System.out.println(" Invalid amount! Please enter a number.");
-                    scanner.next();
-                    continue;
-                }
-                
-                double amountBet = scanner.nextDouble();
-
-                if (amountBet <= 0) {
-                    System.out.println(" Invalid amount! Please enter a positive number.");
-                    continue;
-                }
-
-                if (amountBet > player.getAccount().getBalance()) {
-                    System.out.println(" Not enough money! You have $" + 
-                        String.format("%.2f", player.getAccount().getBalance()));
-                    continue;
-                }
-
-                RouletteBet bet = createBetFromInput(betInput, amountBet);
-
-                if (bet == null || !bet.validateBet()) {
-                    System.out.println(" Invalid bet! Type 'help' for betting options or try again.");
-                    continue;
-                }
-
-                currentPlayerBets.add(bet);
-                
-                System.out.println(" Bet placed: $" + String.format("%.1f", amountBet) + " on " + formatBetDisplay(bet));
-                System.out.println();
-
-            } catch (Exception e) {
-                System.out.println(" Invalid input! Please try again.");
-                scanner.nextLine();
-                continue;
-            }
-        }
-        
-        if (currentPlayerBets.isEmpty()) {
-            System.out.println(player.getUsername() + " placed no bets this round.");
-        } else {
-            System.out.println(player.getUsername() + " placed " + currentPlayerBets.size() + " bet(s). ");
-        }
-    }
-
-    private void spinForAllPlayers() {
-        System.out.println();
-        System.out.println(" SPINNING THE WHEEL FOR ALL PLAYERS...");
-        
-        try { 
-            Thread.sleep(2000); 
-        } catch (InterruptedException e) {}
-        
-        RouletteNumber winner = wheel.spin();
-        
-        if (winner == null) {
-            System.out.println(" ERROR: Wheel spin failed!");
-            return;
-        }
-        
-        
-        showTableWithWinner(winner);
-        
-        System.out.println(" WINNER: " + (winner.getNumber() == 37 ? "00" : winner.getNumber()) + " " + winner.getColor());
-        System.out.println();
-        System.out.println(" RESULTS FOR ALL PLAYERS:");
-        System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        
-        // Process results for each player
-        for (Player player : activePlayers) {
-            processPlayerResults(player, winner);
-        }
-    }
-
-    private void processPlayerResults(Player player, RouletteNumber winner) {
-        List<RouletteBet> bets = playerBets.get(player);
-        
-        if (bets.isEmpty()) {
-            System.out.println( player.getUsername() + ": No bets placed");
-            return;
-        }
-        
-        System.out.println();
-        System.out.println( player.getUsername().toUpperCase() + ":");
-        
-        double totalBets = 0;
-        double totalPayouts = 0;
-        
-        for (RouletteBet bet : bets) {
-            totalBets += bet.getAmount();
-            
-            if (bet.checkWin(winner)) {
-                double betAmount = bet.getAmount();
-                double payout = bet.calculatePayout();
-                totalPayouts += betAmount + payout;
-                
-                System.out.println("   ✅ WIN! " + formatBetDisplay(bet) + " pays $" + 
-                                   String.format("%.2f", betAmount + payout));
-            } else {
-                System.out.println("   ❌ LOSE: " + formatBetDisplay(bet) + " (-$" + 
-                                   String.format("%.2f", bet.getAmount()) + ")");
-            }
-        }
-        
-        
-        CasinoAccount account = player.getAccount();
-        
-        // Withdraw total bets
-        if (totalBets > 0) {
-            account.withdraw(totalBets);
-        }
-        
-        // Deposit winnings if any
-        if (totalPayouts > 0) {
-            account.deposit(totalPayouts);
-        }
-        
-        double netResult = totalPayouts - totalBets;
-        
-        if (netResult > 0) {
-            System.out.println("    Won $" + String.format("%.2f", netResult) + "!");
-        } else if (netResult < 0) {
-            System.out.println("    Lost $" + String.format("%.2f", Math.abs(netResult)));
-        } else {
-            System.out.println("    Break even!");
-        }
-        
-        System.out.println("    New Balance: $" + String.format("%.2f", account.getBalance()));
-        
-        // Save bets for next round
-        List<RouletteBet> prevBets = previousPlayerBets.get(player);
-        prevBets.clear();
-        prevBets.addAll(bets);
-    }
-
-    private void showFinalBalances() {
-        System.out.println();
-        System.out.println(" FINAL BALANCES:");
-        System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        
-        // Sort players by balance (highest first)
-        activePlayers.sort((p1, p2) -> 
-            Double.compare(p2.getAccount().getBalance(), p1.getAccount().getBalance()));
-        
-        for (int i = 0; i < activePlayers.size(); i++) {
-            Player player = activePlayers.get(i);
-            String medal = i == 0 ? "Gold" : i == 1 ? "Silver" : i == 2 ? "Bronze" : "👤";
-            
-            System.out.println(medal + " " + player.getUsername() + ": $" + 
-                String.format("%.2f", player.getAccount().getBalance()));
-        }
-        
-        System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        System.out.println("Thanks for playing multiplayer roulette!");
-    }
-
-    // Add this method to your RouletteGame class
-    private void showTableWithWinner(RouletteNumber winner) {
-        System.out.println("┌─── ROULETTE TABLE - WINNER HIGHLIGHTED ───┐");
-        System.out.println("│                                           │");
-        
-        // Top row with 0 and 00
-        System.out.printf("│        %s      %s                    │%n", 
-            highlightIfWinner(0, winner), highlightIfWinner(37, winner));
-        
-        System.out.println("│   ┌──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┐   │");
-        
-        // Row 3 (top)
-        System.out.printf("│   │%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│   │%n",
-            highlightIfWinner(3, winner), highlightIfWinner(6, winner), 
-            highlightIfWinner(9, winner), highlightIfWinner(12, winner),
-            highlightIfWinner(15, winner), highlightIfWinner(18, winner),
-            highlightIfWinner(21, winner), highlightIfWinner(24, winner),
-            highlightIfWinner(27, winner), highlightIfWinner(30, winner),
-            highlightIfWinner(33, winner), highlightIfWinner(36, winner));
-        
-        System.out.println("│   ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤   │");
-        
-        // Row 2 (middle)
-        System.out.printf("│   │%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│   │%n",
-            highlightIfWinner(2, winner), highlightIfWinner(5, winner),
-            highlightIfWinner(8, winner), highlightIfWinner(11, winner),
-            highlightIfWinner(14, winner), highlightIfWinner(17, winner),
-            highlightIfWinner(20, winner), highlightIfWinner(23, winner),
-            highlightIfWinner(26, winner), highlightIfWinner(29, winner),
-            highlightIfWinner(32, winner), highlightIfWinner(35, winner));
-        
-        System.out.println("│   ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤   │");
-        
-        // Row 1 (bottom)
-        System.out.printf("│   │%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│%s│   │%n",
-            highlightIfWinner(1, winner), highlightIfWinner(4, winner),
-            highlightIfWinner(7, winner), highlightIfWinner(10, winner),
-            highlightIfWinner(13, winner), highlightIfWinner(16, winner),
-            highlightIfWinner(19, winner), highlightIfWinner(22, winner),
-            highlightIfWinner(25, winner), highlightIfWinner(28, winner),
-            highlightIfWinner(31, winner), highlightIfWinner(34, winner));
-        
-        System.out.println("│   └──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┘   │");
-        System.out.println("│      1ST12   2ND12   3RD12              │");
-        
-        // Outside bets with color highlighting
-        System.out.printf("│   ┌────┬────┬───┬───┬────┬────┐          │%n");
-        System.out.printf("│   │1-18│EVEN│%s│%s│ODD │19-36          │%n",
-            highlightIfColor("RED", winner), highlightIfColor("BLK", winner));
-        System.out.println("│   └────┴────┴───┴───┴────┴────┘          │");
-        System.out.println("└───────────────────────────────────────────┘");
-        System.out.println();
-    }
-
-    // Helper method to highlight winning numbers
-    private String highlightIfWinner(int number, RouletteNumber winner) {
-        if (winner == null) {
-            return String.format("%2d", number == 37 ? 0 : number); // Handle 00 display
-        }
-        
-        boolean isWinner = (number == 37 && winner.getNumber() == 37) || 
-                          (number != 37 && winner.getNumber() == number);
-        
-        if (isWinner) {
-            return number == 37 ? "★★" : String.format("★%d", number);
-        } else {
-            return number == 37 ? "00" : String.format("%2d", number);
-        }
-    }
-
-    // Helper method to highlight winning colors
-    private String highlightIfColor(String color, RouletteNumber winner) {
-        if (winner == null) return color;
-        
-        String winnerColor = winner.getColor().toUpperCase();
-        boolean matches = (color.equals("RED") && winnerColor.contains("RED")) ||
-                         (color.equals("BLK") && winnerColor.contains("BLACK"));
-        
-        return matches ? "★" + color.substring(1) : color;
     }
 }
-
-
-// OPTION 1
-// private void showRouletteTable() {
-//     System.out.println("=== AMERICAN ROULETTE TABLE ===");
-//     System.out.println();
-//     System.out.println("        0     00");
-//     System.out.println("    ┌─────┬─────┐");
-//     System.out.println("    │  3  │  6  │  9 │ 12 │ 15 │ 18 │ 21 │ 24 │ 27 │ 30 │ 33 │ 36 │ 2:1");
-//     System.out.println("    ├─────┼─────┼────┼────┼────┼────┼────┼────┼────┼────┼────┼────┤");
-//     System.out.println("    │  2  │  5  │  8 │ 11 │ 14 │ 17 │ 20 │ 23 │ 26 │ 29 │ 32 │ 35 │ 2:1");
-//     System.out.println("    ├─────┼─────┼────┼────┼────┼────┼────┼────┼────┼────┼────┼────┤");
-//     System.out.println("    │  1  │  4  │  7 │ 10 │ 13 │ 16 │ 19 │ 22 │ 25 │ 28 │ 31 │ 34 │ 2:1");
-//     System.out.println("    └─────┴─────┴────┴────┴────┴────┴────┴────┴────┴────┴────┴────┘");
-//     System.out.println("         │  1ST 12  │  2ND 12  │  3RD 12  │");
-//     System.out.println("    ┌────┬────┬────┬────┬────┬────┬────┬────┐");
-//     System.out.println("    │1-18│EVEN│RED │BLCK│ ODD│19-36│");
-//     System.out.println("    └────┴────┴────┴────┴────┴────┘");
-//     System.out.println();
-// }
-
-// OPTION 2
-// Add this method to your RouletteGame class
-
-// private void showInteractiveTable(RouletteNumber winner) {
-//     System.out.println("=== ROULETTE TABLE - WINNER: " + 
-//         (winner.getNumber() == 37 ? "00" : winner.getNumber()) + " " + winner.getColor() + " ===");
-    
-//     // Top row (0 and 00)
-//     System.out.println("    ┌─────┬─────┐");
-//     System.out.printf("    │ %s │ %s │%n", 
-//         highlightNumber(0, winner), highlightNumber(37, winner));
-//     System.out.println("    ├─────┼─────┼────┬────┬────┬────┬────┬────┬────┬────┬────┬────┤");
-    
-//     // Main number grid
-//     for (int row = 3; row >= 1; row--) {
-//         System.out.print("    │     │     ");
-//         for (int col = 0; col < 12; col++) {
-//             int number = row + (col * 3);
-//             System.out.printf("│ %s ", highlightNumber(number, winner));
-//         }
-//         System.out.println("│ 2:1 │");
-        
-//         if (row > 1) {
-//             System.out.println("    │     │     ├────┼────┼────┼────┼────┼────┼────┼────┼────┼────┤     │");
-//         }
-//     }
-    
-//     // Bottom section
-//     System.out.println("    └─────┴─────┴────┴────┴────┴────┴────┴────┴────┴────┴────┴────┴─────┘");
-//     System.out.println("                │  1ST 12  │  2ND 12  │  3RD 12  │");
-//     System.out.println("           ┌────┬────┬────┬────┬────┬────┐");
-//     System.out.printf("           │1-18│EVEN│ %s │ %s │ ODD│19-36│%n", 
-//         highlightColor("RED", winner), highlightColor("BLCK", winner));
-//     System.out.println("           └────┴────┴───┴───┴────┴────┘");
-//     System.out.println();
-// }
-
-// private String highlightNumber(int number, RouletteNumber winner) {
-//     String display = (number == 37) ? "00" : String.format("%2d", number);
-    
-//     if (winner != null && 
-//         ((number == 37 && winner.getNumber() == 37) || 
-//          (number != 37 && winner.getNumber() == number))) {
-//         return "★" + display.substring(1); // Highlight winning number
-//     }
-//     return display;
-// }
-
-// private String highlightColor(String color, RouletteNumber winner) {
-//     if (winner != null && winner.getColor().toUpperCase().startsWith(color.substring(0, 3))) {
-//         return "★" + color.substring(1);
-//     }
-//     return color;
-// }
-
-// OPTION 3
-// //private void showCompactTable() {
-//     System.out.println("=== ROULETTE BETTING LAYOUT ===");
-//     System.out.println();
-//     System.out.println("    0   00");
-//     System.out.println("   ┌─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┬─┐");
-//     System.out.println("   │3│6│9│12│15│18│21│24│27│30│33│36│C3");
-//     System.out.println("   ├─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┤");
-//     System.out.println("   │2│5│8│11│14│17│20│23│26│29│32│35│C2");
-//     System.out.println("   ├─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┼─┤");
-//     System.out.println("   │1│4│7│10│13│16│19│22│25│28│31│34│C1");
-//     System.out.println("   └─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┴─┘");
-//     System.out.println("    1st12  2nd12  3rd12");
-//     System.out.println("   ┌────┬────┬───┬───┬────┬────┐");
-//     System.out.println("   │1-18│EVEN│RED│BLK│ODD │19-36");
-//     System.out.println("   └────┴────┴───┴───┴────┴────┘");
-//     System.out.println();
-//     System.out.println("Betting Examples:");
-//     System.out.println("• Single: 7, 23, 0, -1 (for 00)");
-//     System.out.println("• Split: 1-2, 4-5 • Street: 1-2-3");
-//     System.out.println("• Corner: 1-2-4-5 • Column: COLUMN1");
-//     System.out.println();
-// }
-
-// // Add this method right after your showBettingMenu method
-// private void showBettingMenu() {
-//     showRouletteLayout(); // ✅ ADD THIS LINE
-    
-//     System.out.println("=== BETTING OPTIONS ===");
-//     // ... rest of your existing code
-// }
-
-// private void showRouletteLayout() {
-//     System.out.println("┌─── AMERICAN ROULETTE TABLE ───┐");
-//     System.out.println("│       0      00               │");
-//     System.out.println("│  ┌──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┐  │");
-//     System.out.println("│  │3 │6 │9 │12│15│18│21│24│27│30│33│36│  │");
-//     System.out.println("│  ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤  │");
-//     System.out.println("│  │2 │5 │8 │11│14│17│20│23│26│29│32│35│  │");
-//     System.out.println("│  ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤  │");
-//     System.out.println("│  │1 │4 │7 │10│13│16│19│22│25│28│31│34│  │");
-//     System.out.println("│  └──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┘  │");
-//     System.out.println("│     1ST12   2ND12   3RD12           │");
-//     System.out.println("│  ┌────┬────┬───┬───┬────┬────┐      │");
-//     System.out.println("│  │1-18│EVEN│RED│BLK│ODD │19-36      │");
-//     System.out.println("│  └────┴────┴───┴───┴────┴────┘      │");
-//     System.out.println("└───────────────────────────────────────┘");
-//     System.out.println();
-// }
