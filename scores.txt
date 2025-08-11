@@ -49,4 +49,11 @@ frank | Category: History | Score: 1
 jenn | Category: Movies | Score: 4
 jenn | Category: Movies | Score: 4
 frank | Category: Movies | Score: 4
+<<<<<<< HEAD
+jenn | Category: Sports | Score: 0
+frank | Category: Sports | Score: 4
+jenn | Category: Movies | Score: 4
+frank | Category: Movies | Score: 4
+=======
 >>>>>>> 62ec7644df757419c76a3fa416ee065484dd7fe0
+>>>>>>> b4204390a3113f48ec1eda52eb0cf85c17e9dbe5
