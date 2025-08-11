@@ -104,12 +104,12 @@ public class Trivia implements GameInterface {
             List<String> categories = new ArrayList<>(categoriesSet);
             uiRender.displayEmptyMessage("Welcome to the Trivia Game!", ANSI_MAGENTA);
             console.println("Please choose a category to begin!");
-            console.println(ANSI_CYAN + "\nAvailable categories:" + ANSI_RESET);
 
+            uiRender.displayListHeader("Available Categories", UIRender.MAGENTA);
             for (int i = 0; i < categories.size(); i++) {
-                String color = (i % 2 == 0) ? ANSI_MAGENTA : ANSI_YELLOW;
-                console.println(color + (i + 1) + ". " + categories.get(i) + ANSI_RESET);
+                uiRender.displayListItem((i + 1) + ". " + categories.get(i), UIRender.MAGENTA);
             }
+            uiRender.displayListFooter(UIRender.MAGENTA);
 
             int catChoice = -1;
             while (catChoice < 1 || catChoice > categories.size()) {
@@ -153,27 +153,14 @@ public class Trivia implements GameInterface {
 
             for (int turn = 0; turn < availableQuestions.size() && running; turn++) {
                 for (int pIndex = 0; pIndex < activePlayers.size(); pIndex++) {
-                    if (availableQuestions.isEmpty()) break; // No more questions
+                    if (availableQuestions.isEmpty())
+                        break; // No more questions
 
                     Question q = availableQuestions.remove(0); // Remove and use the first unused question
                     Player currentPlayer = activePlayers.get(pIndex);
 
                     // Display question with color
-                    console.println(
-                            "\n╔════════════════════════════════════════════════════════════════════════════╗");
-                    console.println(
-                            "┃" + ANSI_YELLOW + "  Question for " + ANSI_GREEN + currentPlayer.getUsername()
-                                    + ANSI_YELLOW
-                                    + "  " + ANSI_RESET);
-                    console.println("┃ " + ANSI_MAGENTA + q.getQuestion() + ANSI_RESET);
-                    console.println(
-                            "┣━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┫");
-                    console.println("┃ " + ANSI_MAGENTA + "A) " + ANSI_RESET + q.getAnswerOne());
-                    console.println("┃ " + ANSI_MAGENTA + "B) " + ANSI_RESET + q.getAnswerTwo());
-                    console.println("┃ " + ANSI_MAGENTA + "C) " + ANSI_RESET + q.getAnswerThree());
-                    console.println("┃ " + ANSI_MAGENTA + "D) " + ANSI_RESET + q.getAnswerFour());
-                    console.println(
-                            "╚════════════════════════════════════════════════════════════════════════════╝");
+                    displayQuestionStyled(q, currentPlayer);
 
                     String answer = console
                             .getStringInput(ANSI_YELLOW + "Select your answer (A, B, C, or D): " + ANSI_RESET).trim()
@@ -197,7 +184,7 @@ public class Trivia implements GameInterface {
                                         + ANSI_RESET);
                     }
 
-                    console.println( "Current Score for " + currentPlayer.getUsername() + ": " + ANSI_MAGENTA
+                    console.println("Current Score for " + currentPlayer.getUsername() + ": " + ANSI_MAGENTA
                             + scores.get(currentPlayer) + ANSI_RESET);
 
                     System.out.println();
@@ -256,8 +243,8 @@ public class Trivia implements GameInterface {
     // Leaderboard display
     private void displayLeaderboard(List<Player> activePlayers, Map<Player, Integer> scores, int totalQuestions,
             String selectedCategory) {
-        System.out.println(ANSI_YELLOW + 
-                            "\n══════════ Leaderboard ══════════" + ANSI_RESET);
+        System.out.println(ANSI_YELLOW +
+                "\n══════════ Leaderboard ══════════" + ANSI_RESET);
         System.out.println("+----------------------+--------+");
         System.out.println("| Player               | Score  |");
         System.out.println("+----------------------+--------+");
@@ -330,5 +317,19 @@ public class Trivia implements GameInterface {
     private void flushScreen() {
         System.out.print("\033[H\033[2J");
         System.out.flush();
+    }
+
+    private void displayQuestionStyled(Question q, Player currentPlayer) {
+        String borderColor = UIRender.YELLOW;
+        String title = "Question for " + currentPlayer.getUsername();
+        uiRender.displayListHeader(title, borderColor);
+
+        uiRender.displayListItem(q.getQuestion(), borderColor);
+        uiRender.displayListItem("A) " + q.getAnswerOne(), borderColor);
+        uiRender.displayListItem("B) " + q.getAnswerTwo(), borderColor);
+        uiRender.displayListItem("C) " + q.getAnswerThree(), borderColor);
+        uiRender.displayListItem("D) " + q.getAnswerFour(), borderColor);
+
+        uiRender.displayListFooter(borderColor);
     }
 }

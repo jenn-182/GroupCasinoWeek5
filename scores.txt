@@ -43,3 +43,7 @@ frank | Category: History | Score: 1
 jenn | Category: Movies | Score: 4
 jenn | Category: Movies | Score: 4
 frank | Category: Movies | Score: 4
+jenn | Category: Sports | Score: 0
+frank | Category: Sports | Score: 4
+jenn | Category: Movies | Score: 4
+frank | Category: Movies | Score: 4

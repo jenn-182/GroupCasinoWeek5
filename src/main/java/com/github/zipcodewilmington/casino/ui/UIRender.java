@@ -21,6 +21,7 @@ public class UIRender {
         public static final String RED = "\u001B[31m";
         public static final String WHITE = "\u001B[37m";
         public static final String BLACK = "\u001B[40m";
+        public static final String MAGENTA = "\u001B[35m";
 
         public void flushScreen() {
                 System.out.print("\033[H\033[2J");
