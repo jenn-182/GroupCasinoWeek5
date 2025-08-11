@@ -1,6 +1,7 @@
 package com.github.zipcodewilmington.casino.games.Roulette;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 class RouletteTable {
@@ -70,7 +71,8 @@ class RouletteTable {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("┌──────────────────────────" + ANSI_YELLOW + " ROULETTE TABLE " + ANSI_RESET + "───────────────────────────┐\n");
+        sb.append("┌──────────────────────────" + ANSI_YELLOW + " ROULETTE TABLE " + ANSI_RESET
+                + "───────────────────────────┐\n");
         sb.append("│                                                                     │\n");
 
         // Top row with 0 and 00
@@ -131,6 +133,108 @@ class RouletteTable {
         sb.append("└─────────────────────────────────────────────────────────────────────┘\n");
 
         return sb.toString();
+    }
+
+    // Highlighted table for a player's bets
+    public String toString(List<RouletteBet> bets) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("┌──────────────────────────" + ANSI_YELLOW + " ROULETTE TABLE " + ANSI_RESET
+                + "───────────────────────────┐\n");
+        sb.append("│                                                                     │\n");
+
+        // Top row with 0 and 00
+        String zero = formatCellWithBet("0", "G", 3, bets);
+        String doubleZero = formatCellWithBet("00", "G", 3, bets);
+        sb.append(String.format("│%29s%s%2s%s%26s      │\n", "", zero, "", doubleZero, ""));
+
+        sb.append("│     ┌────┬────┬────┬────┬────┬────┬────┬────┬────┬────┬────┬────┐   │\n");
+
+        // Main number grid
+        for (int i = 3; i >= 1; i--) {
+            sb.append("│     │");
+            for (int j = 0; j < 12; j++) {
+                int number = i + (j * 3);
+                String numberString = String.valueOf(number);
+                String color = numberColors.get(number);
+                sb.append(formatCellWithBet(numberString, color, 4, bets));
+                sb.append("│");
+            }
+            sb.append("   │    \n");
+        }
+
+        sb.append("│     └────┴────┴────┴────┴────┴────┴────┴────┴────┴────┴────┴────┘   │\n");
+
+        // Dozens bets
+        String first12 = formatCategoryWithBet("1st 12", bets, 10);
+        String second12 = formatCategoryWithBet("2nd 12", bets, 10);
+        String third12 = formatCategoryWithBet("3rd 12", bets, 10);
+
+        sb.append("│          ┌────────────┬────────────┬────────────┐                   │\n");
+        sb.append(String.format("│          │%s│%s│%s│                   │\n", first12, second12, third12));
+        sb.append("│          └────────────┴────────────┴────────────┘                   │\n");
+
+        // Even/Odd, Red/Black, High/Low bets
+        String range18 = formatCategoryWithBet("1-18", bets, 4);
+        String even = formatCategoryWithBet("EVEN", bets, 4);
+        String red = formatCategoryWithBet("RED", bets, 4);
+        String black = formatCategoryWithBet("BLK", bets, 4);
+        String odd = formatCategoryWithBet("ODD", bets, 4);
+        String range36 = formatCategoryWithBet("19-36", bets, 4);
+
+        String col1 = formatCategoryWithBet("1st", bets, 3);
+        String col2 = formatCategoryWithBet("2nd", bets, 3);
+        String col3 = formatCategoryWithBet("3rd", bets, 3);
+
+        sb.append("│      ┌──────┬──────┬──────┬──────┬──────┬───────┐                   │\n");
+        sb.append(String.format("│      │%s│%s│%s│%s│%s│%s│                   │\n",
+                range18, even, red, black, odd, range36));
+        sb.append("│      └──────┴──────┴──────┴──────┴──────┴───────┘                   │\n");
+
+        sb.append("│      ┌───┬───┬───┐                                                  │\n");
+        sb.append(String.format("│      │%s│%s│%s│                                                  │\n", col1, col2,
+                col3));
+        sb.append("│      └───┴───┴───┘                                                  │\n");
+
+        sb.append("│                                                                     │\n");
+        sb.append("└─────────────────────────────────────────────────────────────────────┘\n");
+
+        return sb.toString();
+    }
+
+    // Helper to highlight numbers the player bet on
+    private String formatCellWithBet(String number, String color, int width, List<RouletteBet> bets) {
+        boolean isBet = bets != null && bets.stream().anyMatch(bet -> betMatchesNumber(bet, number));
+        String cell = formatCell(number, color, width);
+        return isBet ? ANSI_YELLOW + cell.trim() + ANSI_RESET : cell;
+    }
+
+    // Helper to highlight categories the player bet on
+    private String formatCategoryWithBet(String category, List<RouletteBet> bets, int width) {
+        boolean isBet = bets != null && bets.stream().anyMatch(bet -> betMatchesCategory(bet, category));
+        String cell = String.format(" %-" + width + "s ", category);
+        return isBet ? ANSI_YELLOW + cell.trim() + ANSI_RESET : cell;
+    }
+
+    private boolean betMatchesNumber(RouletteBet bet, String number) {
+        if (bet.getBetType().equalsIgnoreCase("STRAIGHT_UP")) {
+            return String.valueOf(bet.getNumberBet()).equals(number);
+        }
+        if (bet.getBetType().equalsIgnoreCase("SPLIT") ||
+                bet.getBetType().equalsIgnoreCase("CORNER") ||
+                bet.getBetType().equalsIgnoreCase("STREET")) {
+            int[] nums = bet.getNumbers();
+            if (nums != null) {
+                for (int n : nums) {
+                    if (String.valueOf(n).equals(number))
+                        return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean betMatchesCategory(RouletteBet bet, String category) {
+        return bet.getBetType().equalsIgnoreCase(category);
     }
 
     private String formatCell(String number, String color, int width) {
@@ -220,4 +324,5 @@ class RouletteTable {
         }
         return String.format("%-" + width + "s", content);
     }
+
 }

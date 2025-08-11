@@ -8,6 +8,7 @@ import java.util.Scanner;
 import com.github.zipcodewilmington.casino.GameInterface;
 import com.github.zipcodewilmington.casino.Player;
 import com.github.zipcodewilmington.casino.ui.AnsiColor;
+import com.github.zipcodewilmington.casino.ui.UIRender;
 
 public class Poker implements GameInterface {
 
@@ -19,6 +20,7 @@ public class Poker implements GameInterface {
     private List<Card> communityCards;
     private int currentRound;
     private Scanner scanner;
+    private final UIRender uiRender;
 
     private GameState gameState;
     private HandAnalyzer handAnalyzer;
@@ -37,6 +39,7 @@ public class Poker implements GameInterface {
         playerHand = new Hand();
         currentRound = 0;
         scanner = new Scanner(System.in);
+        uiRender = new UIRender();
 
         gameState = new GameState();
         handAnalyzer = new HandAnalyzer();
@@ -154,29 +157,39 @@ public class Poker implements GameInterface {
     }
 
     public void handlePlayerAction() {
-        System.out.println("\n" + AnsiColor.GREEN.getColor() + player.getUsername() + "'s turn");
-        System.out.println("Your balance: $" + player.getAccount().getBalance() + AnsiColor.AUTO.getColor());
-        playerHand.printHand();
+ 
+        uiRender.displayEmptyMessage("YOUR TURN", UIRender.WHITE);
+        System.out.println("Your balance: $" + String.format("%.2f", player.getAccount().getBalance())
+                + UIRender.RESET);
+        // playerHand.printHand();
+        displayHandAscii(playerHand.getCards());
 
         double currentBet = bettingManager.getCurrentBet();
         double playerBet = gameState.getPlayerBet(player.getUsername());
         double amountToCall = currentBet - playerBet;
 
-        System.out.println(AnsiColor.RED.getColor() + "Current bet: $" + currentBet);
+        System.out.println();
+        System.out.println(AnsiColor.RED.getColor() + "Current bet: $" + String.format("%.2f", currentBet));
         if (amountToCall > 0) {
-            System.out.println("Amount to call: $" + amountToCall);
+            System.out.println("Amount to call: $" + String.format("%.2f", amountToCall));
         }
 
-        System.out.println("\nChoose action:" + AnsiColor.AUTO.getColor());
-        System.out.println("1. Fold");
-        if (amountToCall > 0) {
-            System.out.println("2. Call ($" + amountToCall + ")");
-        } else {
-            System.out.println("2. Check");
-        }
-        System.out.println("3. Raise");
-        System.out.println("4. All-In ($" + player.getAccount().getBalance() + ")");
+        // display header
+        System.out.println();
+        uiRender.displayListHeader("PLAYER ACTIONS", UIRender.PURPLE);
 
+        String[] actions = {
+                "[1] Fold",
+                amountToCall > 0 ? "[2] Call ($" + String.format("%.2f", amountToCall) + ")" : "[2] Check",
+                "[3] Raise",
+                "[4] All-In ($" + String.format("%.2f", player.getAccount().getBalance()) + ")"
+        };
+        for (String action : actions) {
+            uiRender.displayListItem(action, UIRender.PURPLE);
+        }
+        uiRender.displayListFooter(UIRender.PURPLE);
+
+        System.out.print("Choose an option (1-4): ");
         int choice = getPlayerChoice(1, 4);
 
         switch (choice) {
@@ -322,7 +335,34 @@ public class Poker implements GameInterface {
     }
 
     public void handleComputerAction(String computerName, int computerIndex) {
-        System.out.println("\n" + computerName + " is thinking...");
+        flushScreen();
+        uiRender.displayEmptyMessage("OPPONENTS DECIDING...", UIRender.WHITE);
+        String botColor;
+        String robotHead;
+        if (computerName.equals("Bot1")) {
+            botColor = "\u001B[31m"; // Red
+            robotHead = "          ;     \n" +
+                    "       d[o_o]b   \n" +
+                    "        /[_]\\  \n" +
+                    "         ] [   ";
+        } else if (computerName.equals("Bot2")) {
+            botColor = "\u001B[34m"; // Blue
+            robotHead = "        \\||/     \n" +
+                    "        [o_o]   \n" +
+                    "        /[_]\\  \n" +
+                    "         ] [   ";
+        } else {
+            botColor = "\u001B[33m"; // Yellow
+            robotHead = "          ;    \n" +
+                    "       <[o_0]>   \n" +
+                    "        /[_]\\  \n" +
+                    "         ] [   ";
+        }
+
+        System.out.println("\n" + botColor + robotHead + "\u001B[0m");
+        System.out.println();
+        System.out.println(botColor + computerName + "\u001B[0m is thinking..." + "\u001B[0m");
+
         try {
             Thread.sleep(1500);
         } catch (InterruptedException e) {
@@ -339,7 +379,7 @@ public class Poker implements GameInterface {
         if (random < 0.2) { // 20% chance to fold
             gameState.foldPlayer(computerName);
             gameState.setPlayerActed(computerName);
-            System.out.println(computerName + " folded.");
+            System.out.println(botColor + computerName + " folded.");
 
         } else if (random < 0.8) { // 60% chance to call
             if (amountToCall > 0) {
@@ -347,10 +387,10 @@ public class Poker implements GameInterface {
                 gameState.addToPot(amountToCall);
                 gameState.setPlayerBet(computerName, currentBet);
                 gameState.setPlayerActed(computerName);
-                System.out.println(computerName + " called $" + amountToCall);
+                System.out.println(botColor + computerName + " called $" + String.format("%.2f", amountToCall));
             } else {
                 gameState.setPlayerActed(computerName);
-                System.out.println(computerName + " checked.");
+                System.out.println(botColor + computerName + " checked.");
             }
 
         } else { // 20% chance to raise
@@ -364,7 +404,7 @@ public class Poker implements GameInterface {
             gameState.resetPlayerActionsExcept(computerName);
             gameState.setPlayerActed(computerName); // This computer has acted on this bet level
 
-            System.out.println(computerName + " raised to $" + newBetLevel);
+            System.out.println(botColor + computerName + " raised to $" + String.format("%.2f", newBetLevel));
         }
 
         System.out.println("");
@@ -392,17 +432,25 @@ public class Poker implements GameInterface {
         // Initialize here, replacing any old reference
         handAnalyzer = new HandAnalyzer();
 
-        System.out.println("\n=== SHOWDOWN ===");
-        for (Card card : communityCards) {
-            System.out.print(" | " + card + " | ");
+        // System.out.println("\n=== SHOWDOWN ===");
+        // for (Card card : communityCards) {
+        // System.out.print(" | " + card + " | ");
+        // }
+        // System.out.println();
+        flushScreen();
+        uiRender.displayEmptyMessage("SHOWDOWN", UIRender.WHITE);
+        if (!communityCards.isEmpty()) {
+            System.out.println("Community Cards:");
+            displayHandAscii(communityCards);
         }
-        System.out.println("\n");
+        System.out.println();
+
         List<String> activePlayers = gameState.getActivePlayers();
 
         // Default win if only one player remains
         if (activePlayers.size() == 1) {
             String winner = activePlayers.get(0);
-            System.out.println(winner + " wins by default!");
+            System.out.println(UIRender.GREEN + winner + " wins by default!" + AnsiColor.AUTO.getColor());
             if (winner.equals(player.getUsername())) {
                 player.getAccount().deposit(gameState.getPot());
             }
@@ -413,8 +461,9 @@ public class Poker implements GameInterface {
 
         // Human player
         if (gameState.isPlayerActive(player.getUsername())) {
-            System.out.print(player.getUsername() + ": ");
-            playerHand.printHand();
+            System.out.println(player.getUsername() + ": ");
+            // playerHand.printHand();
+            displayHandAscii(playerHand.getCards());
             playerHandValues.put(player.getUsername(), handAnalyzer.evaluate(playerHand, communityCards));
         }
 
@@ -422,8 +471,16 @@ public class Poker implements GameInterface {
         for (int i = 0; i < computers.size(); i++) {
             String computerName = computers.get(i);
             if (gameState.isPlayerActive(computerName)) {
-                System.out.print(computerName + ": ");
-                computerHands.get(i).printHand();
+                String botColor;
+                if (computerName.equals("Bot1")) {
+                    botColor = "\u001B[31m"; // Red
+                } else if (computerName.equals("Bot2")) {
+                    botColor = "\u001B[34m"; // Blue
+                } else {
+                    botColor = "\u001B[33m"; // Yellow
+                }
+                System.out.println(botColor + computerName + "\u001B[0m: ");
+                displayHandAscii(computerHands.get(i).getCards());
                 playerHandValues.put(computerName, handAnalyzer.evaluate(computerHands.get(i), communityCards));
             }
         }
@@ -446,30 +503,45 @@ public class Poker implements GameInterface {
 
         // Announce results
         if (winners.size() == 1) {
-            System.out.println("\nWinner: " + winners.get(0));
+            System.out.println(UIRender.GREEN + "\nWinner: " + winners.get(0) + "\u001B[0m");
             if (winners.get(0).equals(player.getUsername())) {
                 player.getAccount().deposit(gameState.getPot());
             }
         } else {
-            System.out.println("\nIt's a tie between: " + String.join(", ", winners));
+            System.out.println(UIRender.YELLOW + "\nIt's a tie between: " + String.join(", ", winners) + UIRender.RESET);
             // Pot split logic could go here
         }
     }
 
     public void displayGameState() {
-        System.out.println(AnsiColor.PURPLE.getColor() + "\n\n=== Round " + (currentRound + 1) + " ===");
+
+        flushScreen();
+        
+        // System.out.println(AnsiColor.PURPLE.getColor() + "\n\n=== Round " +
+        // (currentRound + 1) + " ===");
+    
+
+        uiRender.displaySimpleHeader("Round " + (currentRound + 1), UIRender.PURPLE);
+        System.out.println();
         System.out.println("Pot: $" + gameState.getPot());
 
+        // if (!communityCards.isEmpty()) {
+        // System.out.print("Community Cards:" + AnsiColor.AUTO.getColor());
+        // for (Card card : communityCards) {
+        // System.out.print(" | " + card + " | ");
+        // }
+        // System.out.println();
+        // }
+
         if (!communityCards.isEmpty()) {
-            System.out.print("Community Cards:" + AnsiColor.AUTO.getColor());
-            for (Card card : communityCards) {
-                System.out.print(" | " + card + " | ");
-            }
-            System.out.println();
+            System.out.println("Community Cards:");
+            displayHandAscii(communityCards);
         }
 
         System.out.println(AnsiColor.PURPLE.getColor() + "Active players: " + gameState.getActivePlayers().size()
                 + AnsiColor.AUTO.getColor());
+
+        
     }
 
     @Override
@@ -526,8 +598,67 @@ public class Poker implements GameInterface {
 
     @Override
     public void loadQuestionsFromFile(String filename) {
-        // Roulette does not use questions, so this can be left empty or throw an
-        // exception
-        // Example: do nothing
+        // Poker does not use questions, so left empty
+    }
+
+    private String getSuitSymbol(String suit) {
+        switch (suit) {
+            case "H":
+                return "♥";
+            case "D":
+                return "♦";
+            case "C":
+                return "♣";
+            case "S":
+                return "♠";
+            default:
+                return "?";
+        }
+    }
+
+    private String getSuitColor(String suit) {
+        switch (suit) {
+            case "H":
+            case "D":
+                return "\u001B[31m"; // Red
+            case "C":
+            case "S":
+                return "\u001B[30m"; // Black
+            default:
+                return "\u001B[0m"; // Reset
+        }
+    }
+
+    public void displayHandAscii(List<Card> hand) {
+        String reset = "\u001B[0m";
+        StringBuilder top = new StringBuilder();
+        StringBuilder mid1 = new StringBuilder();
+        StringBuilder mid2 = new StringBuilder();
+        StringBuilder mid3 = new StringBuilder();
+        StringBuilder bot = new StringBuilder();
+
+        for (Card card : hand) {
+            String rank = card.getRank();
+            String suit = card.getSuit();
+            String suitSymbol = getSuitSymbol(suit);
+            String symbolColor = (suit.equals("H") || suit.equals("D")) ? "\u001B[31m" : "\u001B[30m"; // Red or Black
+
+            top.append("┌───────┐ ");
+            mid1.append(String.format("│ %-2s    │ ", rank));
+            mid2.append("│   " + symbolColor + suitSymbol + reset + "   │ ");
+            mid3.append(String.format("│    %-2s │ ", rank));
+            bot.append("└───────┘ ");
+        }
+
+        System.out.println(top.toString());
+        System.out.println(mid1.toString());
+        System.out.println(mid2.toString());
+        System.out.println(mid3.toString());
+        System.out.println(bot.toString());
+    }
+
+    private void flushScreen() {
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
     }
 }

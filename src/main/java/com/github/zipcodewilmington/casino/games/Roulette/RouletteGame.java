@@ -146,6 +146,9 @@ public class RouletteGame implements GameInterface {
 
             System.out.println("New Round! Everyone, place your bets!");
             System.out.println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            showBettingMenu(new ArrayList<>());
+
+
 
             boolean anyBetsPlaced = false;
             for (Player player : activePlayers) {
@@ -190,7 +193,10 @@ public class RouletteGame implements GameInterface {
     }
 
     private void collectBetsFromPlayer(Player player, List<RouletteBet> betsList) {
-        System.out.println(ANSI_YELLOW + " Balance:" + ANSI_RESET + " $"
+        flushScreen();
+        showBettingMenu(betsList);
+        System.out.println(ANSI_RED + "\nIt's " + player.getUsername() + "'s turn to bet!" + ANSI_RESET);
+        System.out.println(ANSI_YELLOW + " \nBalance:" + ANSI_RESET + " $"
                 + String.format("%.2f", player.getAccount().getBalance()));
 
         double insideTotal = 0;

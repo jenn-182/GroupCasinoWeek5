@@ -30,6 +30,7 @@ public class Casino implements Runnable {
     private CasinoAccount currentAccount;
     private boolean isRunning;
     private Scanner scanner = new Scanner(System.in);
+    private UIRender uiRender;
 
     // Constructor
     public Casino() {
@@ -38,6 +39,7 @@ public class Casino implements Runnable {
         this.currentAccount = null;
         this.isRunning = false;
         initializeCasino();
+        this.uiRender = new UIRender();
     }
 
     private void initializeCasino() {
@@ -60,6 +62,8 @@ public class Casino implements Runnable {
     private void shutdown() {
         isRunning = false;
         System.out.println("Closing Casino...");
+        flushScreen();
+        uiRender.displayGoodbyeMessage();
         System.out.println("All accounts saved.");
         System.out.println("Thank you for visiting the Casino!");
     }
@@ -157,28 +161,51 @@ public class Casino implements Runnable {
     public void playRouletteGame(Player player) {
         try {
             UIRender uiRender = new UIRender();
-            uiRender.displayRouletteWelcomeHeader();
-
-            int choice = console.getIntegerInput("Enter your choice (1-3): ");
-
-            switch (choice) {
-                case 1:
-                    playSinglePlayerRoulette(player);
-                    break;
-                case 2:
-                    playMultiplayerRoulette(player);
-                    break;
-                case 3:
-                    viewRouletteRules();
-                    break;
-                default:
-                    console.println("Invalid choice! Please select 1, 2, or 3.");
-                    break;
+            boolean inMenu = true;
+            while (inMenu) {
+                uiRender.displayRouletteWelcomeHeader();
+                int choice = console.getIntegerInput("Enter your choice (1-3): ");
+                switch (choice) {
+                    case 1:
+                        playSinglePlayerRoulette(player);
+                        inMenu = false;
+                        break;
+                    case 2:
+                        playMultiplayerRoulette(player);
+                        inMenu = false;
+                        break;
+                    case 3:
+                        viewRouletteRules();
+                        // Stay in menu after viewing rules
+                        break;
+                    default:
+                        console.println("Invalid choice! Please select 1, 2, or 3.");
+                        break;
+                }
             }
-
         } catch (Exception e) {
             console.println("Error in Roulette game: " + e.getMessage());
         }
+    }
+
+    private void playMultiplayerRoulette(Player hostPlayer) {
+        List<Player> players = getMultiplayerPlayers("Roulette", hostPlayer, 6); // up to 6 players
+        if (players.size() >= 2) {
+            console.println("\nStarting Multiplayer Roulette with " + players.size() + " players!");
+            RouletteGame game = new RouletteGame();
+            for (Player p : players) {
+                game.add(p);
+            }
+            game.launchMultiplayer(players);
+
+            console.println("Multiplayer Roulette session completed!");
+            for (Player p : players) {
+                p.getAccount().addGameEntry("Multiplayer Roulette Session");
+            }
+        } else {
+            console.println("Not enough players for multiplayer! Need at least 2.");
+        }
+        console.getStringInput("Press ENTER to continue...");
     }
 
     private void playSinglePlayerRoulette(Player player) {
@@ -219,32 +246,6 @@ public class Casino implements Runnable {
         }
     }
 
-    private void playMultiplayerRoulette(Player hostPlayer) {
-        try {
-            // Get players using the new helper method
-            List<Player> players = getMultiplayerPlayers(hostPlayer, 6);
-            if (players.size() >= 2) {
-                console.println("\nStarting Multiplayer Roulette with " + players.size() + " players!");
-                RouletteGame game = new RouletteGame();
-                game.launchMultiplayer(players);
-
-                console.println("\nMultiplayer Roulette session completed!");
-                console.println("All player balances have been updated.");
-
-                for (Player player : players) {
-                    player.getAccount().addGameEntry("Multiplayer Roulette Session");
-                }
-            } else {
-                console.println("Not enough players for multiplayer! Need at least 2.");
-            }
-
-            console.getStringInput("Press ENTER to continue...");
-
-        } catch (Exception e) {
-            console.println("Error in multiplayer Roulette: " + e.getMessage());
-        }
-    }
-
     private void viewRouletteRules() {
 
         try {
@@ -266,23 +267,22 @@ public class Casino implements Runnable {
     public void playPokerGame(Player player) {
         try {
             UIRender uiRender = new UIRender();
-            uiRender.displayPokerWelcomeHeader();
-
-            int choice = console.getIntegerInput("Enter your choice (1-3): ");
-
-            switch (choice) {
-                case 1:
-                    playSinglePlayerPoker(player);
-                    break;
-                case 2:
-                    playMultiplayerPoker(player);
-                    break;
-                case 3:
-                    viewPokerRules();
-                    break;
-                default:
-                    console.println("Invalid choice! Please select 1, 2, or 3.");
-                    break;
+            boolean inMenu = true;
+            while (inMenu) {
+                uiRender.displayPokerWelcomeHeader();
+                int choice = console.getIntegerInput("Enter your choice (1-2): ");
+                switch (choice) {
+                    case 1:
+                        playSinglePlayerPoker(player);
+                        inMenu = false;
+                        break;
+                    case 2:
+                        viewPokerRules();
+                        break;
+                    default:
+                        console.println("Invalid choice! Please select 1 or 2.");
+                        break;
+                }
             }
         } catch (Exception e) {
             console.println("Error in Poker game menu: " + e.getMessage());
@@ -291,27 +291,11 @@ public class Casino implements Runnable {
 
     private void playSinglePlayerPoker(Player player) {
         console.println("Starting single player Poker for " + player.getUsername());
-        player.getAccount().addGameEntry("Played Poker - Demo session");
+        player.getAccount().addGameEntry("Played Poker");
         Poker poker = new Poker(player);
         flushScreen();
         poker.run();
         console.println("Poker session completed!");
-        console.getStringInput("Press ENTER to continue...");
-    }
-
-    private void playMultiplayerPoker(Player hostPlayer) {
-        List<Player> players = getMultiplayerPlayers(hostPlayer, 6);
-        if (players.size() >= 2) {
-            console.println("\nStarting Multiplayer Poker with " + players.size() + " players!");
-            Poker game = new Poker(hostPlayer);
-            game.launchMultiplayer(players);
-            console.println("\nMultiplayer Poker session completed!");
-            for (Player player : players) {
-                player.getAccount().addGameEntry("Multiplayer Poker Session");
-            }
-        } else {
-            console.println("Not enough players for multiplayer! Need at least 2.");
-        }
         console.getStringInput("Press ENTER to continue...");
     }
 
@@ -335,23 +319,26 @@ public class Casino implements Runnable {
     public void playCrapsGame(Player player) {
         try {
             UIRender uiRender = new UIRender();
-            uiRender.displayCrapsWelcomeHeader();
-
-            int choice = console.getIntegerInput("Enter your choice (1-3): ");
-
-            switch (choice) {
-                case 1:
-                    playSinglePlayerCraps(player);
-                    break;
-                case 2:
-                    playMultiplayerCraps(player);
-                    break;
-                case 3:
-                    viewCrapsRules();
-                    break;
-                default:
-                    console.println("Invalid choice! Please select 1, 2, or 3.");
-                    break;
+            boolean inMenu = true;
+            while (inMenu) {
+                uiRender.displayCrapsWelcomeHeader();
+                int choice = console.getIntegerInput("Enter your choice (1-3): ");
+                switch (choice) {
+                    case 1:
+                        playSinglePlayerCraps(player);
+                        inMenu = false;
+                        break;
+                    case 2:
+                        playMultiplayerCraps(player);
+                        inMenu = false;
+                        break;
+                    case 3:
+                        viewCrapsRules();
+                        break;
+                    default:
+                        console.println("Invalid choice! Please select 1, 2, or 3.");
+                        break;
+                }
             }
         } catch (Exception e) {
             console.println("Error in Craps game menu: " + e.getMessage());
@@ -376,7 +363,7 @@ public class Casino implements Runnable {
     }
 
     private void playMultiplayerCraps(Player hostPlayer) {
-        List<Player> players = getMultiplayerPlayers(hostPlayer, 5);
+        List<Player> players = getMultiplayerPlayers("Craps", hostPlayer, 5);
         if (players.size() >= 2) {
             console.println("\nStarting Multiplayer Craps with " + players.size() + " players!");
             Craps craps = new Craps();
@@ -422,23 +409,26 @@ public class Casino implements Runnable {
     public void playTriviaGame(Player player) {
         try {
             UIRender uiRender = new UIRender();
-            uiRender.displayTriviaWelcomeHeader();
-
-            int choice = console.getIntegerInput("Enter your choice (1-3): ");
-
-            switch (choice) {
-                case 1:
-                    playSinglePlayerTrivia(player);
-                    break;
-                case 2:
-                    playMultiplayerTrivia(player);
-                    break;
-                case 3:
-                    viewTriviaRules();
-                    break;
-                default:
-                    console.println("Invalid choice! Please select 1, 2, or 3.");
-                    break;
+            boolean inMenu = true;
+            while (inMenu) {
+                uiRender.displayTriviaWelcomeHeader();
+                int choice = console.getIntegerInput("Enter your choice (1-3): ");
+                switch (choice) {
+                    case 1:
+                        playSinglePlayerTrivia(player);
+                        inMenu = false;
+                        break;
+                    case 2:
+                        playMultiplayerTrivia(player);
+                        inMenu = false;
+                        break;
+                    case 3:
+                        viewTriviaRules();
+                        break;
+                    default:
+                        console.println("Invalid choice! Please select 1, 2, or 3.");
+                        break;
+                }
             }
         } catch (Exception e) {
             console.println("Error in Trivia game menu: " + e.getMessage());
@@ -458,7 +448,7 @@ public class Casino implements Runnable {
     }
 
     private void playMultiplayerTrivia(Player hostPlayer) {
-        List<Player> players = getMultiplayerPlayers(hostPlayer, 2);
+        List<Player> players = getMultiplayerPlayers("Trivia", hostPlayer, 2);
         if (players.size() >= 2) {
             console.println("\nStarting Multiplayer Trivia with " + players.size() + " players!");
             flushScreen();
@@ -489,23 +479,22 @@ public class Casino implements Runnable {
     public void playNumberGuessGame(Player player) {
         try {
             UIRender uiRender = new UIRender();
-            uiRender.displayNumberGuessWelcomeHeader();
-
-            int choice = console.getIntegerInput("Enter your choice (1-2): ");
-
-            switch (choice) {
-                case 1:
-                    playSinglePlayerNumberGuess(player);
-                    break;
-                case 2:
-                    playMultiplayerNumberGuess();
-                    break;
-                case 3:
-                    viewNumberGuessRules();
-                    break; // Exit the menu
-                default:
-                    console.println("Invalid choice! Please select 1 or 2.");
-                    break;
+            boolean inMenu = true;
+            while (inMenu) {
+                uiRender.displayNumberGuessWelcomeHeader();
+                int choice = console.getIntegerInput("Enter your choice (1-2): ");
+                switch (choice) {
+                    case 1:
+                        playSinglePlayerNumberGuess(player);
+                        inMenu = false;
+                        break;
+                    case 2:
+                        viewNumberGuessRules();
+                        break;
+                    default:
+                        console.println("Invalid choice! Please select 1 or 2.");
+                        break;
+                }
             }
         } catch (Exception e) {
             console.println("Error in Number Guess game menu: " + e.getMessage());
@@ -521,40 +510,6 @@ public class Casino implements Runnable {
         game.play();
         console.println("Number Guess session completed!");
         console.getStringInput("Press ENTER to continue...");
-    }
-
-    private void playMultiplayerNumberGuess() {
-        try {
-            // Choose host (current player/account)
-            Player hostPlayer = currentAccount != null ? currentAccount.getPlayer() : null;
-            if (hostPlayer == null) {
-                console.println("No host player found. Please log in first.");
-                return;
-            }
-
-            int maxPlayers = 4; // Set your desired max
-            List<Player> players = getMultiplayerPlayers(hostPlayer, maxPlayers);
-
-            if (players.size() < 2) {
-                console.println("Not enough players for multiplayer! Need at least 2.");
-                return;
-            }
-
-            flushScreen();
-            UIRender uiRender = new UIRender();
-            uiRender.displayNumberGuessWelcomeHeader();
-
-            NumberGuessGame game = new NumberGuessGame(console);
-            game.playMultiplayer(players);
-
-            console.println("Multiplayer Number Guess session completed!");
-            for (Player player : players) {
-                player.getAccount().addGameEntry("Multiplayer Number Guess Session");
-            }
-            console.getStringInput("Press ENTER to continue...");
-        } catch (Exception e) {
-            console.println("Error in multiplayer Number Guess: " + e.getMessage());
-        }
     }
 
     private void viewNumberGuessRules() {
@@ -602,15 +557,16 @@ public class Casino implements Runnable {
 
     // ------------------MULTI PLAYER METHODS---------------------
 
-    private List<Player> getMultiplayerPlayers(Player hostPlayer, int maxPlayers) {
+    private List<Player> getMultiplayerPlayers(String gameName, Player hostPlayer, int maxPlayers) {
         List<Player> players = new ArrayList<>();
         players.add(hostPlayer);
 
         UIRender uiRender = new UIRender();
-        uiRender.displayMultiplayerHeader(hostPlayer.getUsername(), UIRender.PURPLE);
+        uiRender.displayMultiplayerHeader(gameName, hostPlayer.getUsername());
         console.println("You can add up to " + (maxPlayers - 1) + " more players (max " + maxPlayers + " total).");
 
-        int numPlayers = console.getIntegerInput("How many total players? (2-" + maxPlayers + "): ");
+        int numPlayers = console
+                .getIntegerInput("\nHow many players are playing? (2-" + maxPlayers + "): ");
         if (numPlayers < 2 || numPlayers > maxPlayers) {
             console.println(UIRender.RED + "Invalid number! Must be between 2 and " + maxPlayers + " players."
                     + UIRender.RESET);
@@ -635,18 +591,20 @@ public class Casino implements Runnable {
         try {
             List<CasinoAccount> allAccounts = new ArrayList<>(accountManager.loadAccounts().values());
 
-            console.println("\nAvailable players for Player " + playerNumber + ":");
-            int idx = 1;
-            Map<Integer, CasinoAccount> indexToAccount = new HashMap<>();
+            flushScreen();
+            uiRender.displayListHeader("Available players for Player " + playerNumber + ":", UIRender.PURPLE);
 
+            Map<Integer, CasinoAccount> indexToAccount = new HashMap<>();
+            int idx = 1;
             for (CasinoAccount account : allAccounts) {
-                console.println(idx + ": " + account.getUsername() + " (Balance: $"
-                        + String.format("%.2f", account.getBalance()) + ")");
+                uiRender.displayListItem(idx + ": " + account.getUsername() + " (Balance: $"
+                        + String.format("%.2f", account.getBalance()) + ")", UIRender.PURPLE);
                 indexToAccount.put(idx, account);
                 idx++;
             }
+            uiRender.displayListItem(idx + ": Create new player", UIRender.PURPLE);
 
-            console.println((idx) + ": Create new player");
+            uiRender.displayListFooter(UIRender.PURPLE);
 
             int selection = console.getIntegerInput("Select player (or " + idx + " for new): ");
 

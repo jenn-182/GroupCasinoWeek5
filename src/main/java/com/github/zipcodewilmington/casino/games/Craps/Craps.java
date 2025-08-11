@@ -33,7 +33,7 @@ public class Craps implements GameInterface {
         String border = ANSI_CYAN + "═══════════════════════════════════════════════════════════════════════"
                 + ANSI_RESET;
         System.out.println(border);
-        System.out.println(ANSI_YELLOW + centerText("HOW TO BET IN CRAPS", 70) + ANSI_RESET);
+        System.out.println(centerText("HOW TO BET IN CRAPS", 70));
         System.out.println(border);
 
         System.out.println(ANSI_GREEN + "PASS LINE BET:" + ANSI_RESET);

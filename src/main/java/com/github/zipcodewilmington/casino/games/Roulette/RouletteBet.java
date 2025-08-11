@@ -52,6 +52,8 @@ public class RouletteBet {
         return numberBet;
     }
 
+    
+
     public boolean checkWin(RouletteNumber winningNumber) {
         int num = winningNumber.getNumber();
 

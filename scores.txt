@@ -36,3 +36,10 @@ jenn | Category: Computer Science | Score: 2
 frank | Category: Computer Science | Score: 0
 jenn | Category: General | Score: 8
 jenn | Category: Movies | Score: 8
+jenn | Category: Movies | Score: 4
+frank | Category: Movies | Score: 6
+jenn | Category: History | Score: 2
+frank | Category: History | Score: 1
+jenn | Category: Movies | Score: 4
+jenn | Category: Movies | Score: 4
+frank | Category: Movies | Score: 4
