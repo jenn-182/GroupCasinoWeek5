@@ -8,7 +8,7 @@ public class Hand {
 
     private Stack<Card> hand;
 
-    Hand() {
+    public Hand() {
         hand = new Stack<>();
     }
 
