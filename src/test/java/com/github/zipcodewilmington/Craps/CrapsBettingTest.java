@@ -1,3 +1,4 @@
+package com.github.zipcodewilmington.Craps;
 import com.github.zipcodewilmington.casino.games.Craps.CrapsBetting;
 import com.github.zipcodewilmington.casino.games.Craps.CrapsBetting.BetType;
 import org.junit.jupiter.api.Test;
