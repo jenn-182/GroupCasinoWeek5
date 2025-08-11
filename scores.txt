@@ -16,6 +16,12 @@ josiah | Category: Computer Science | Score: 0
 jenn | Category: Computer Science | Score: 1
 josiah | Category: Computer Science | Score: 1
 younis | Category: Computer Science | Score: 0
+<<<<<<< HEAD
+josiah | Category: Movies | Score: 4
+younis | Category: Movies | Score: 5
+Alice | Category: Science | Score: 1
+Bob | Category: Science | Score: 0
+=======
 jenn | Category: Computer Science | Score: 1
 jenn | Category: Computer Science | Score: 1
 jenn | Category: Geography | Score: 1
@@ -43,7 +49,11 @@ frank | Category: History | Score: 1
 jenn | Category: Movies | Score: 4
 jenn | Category: Movies | Score: 4
 frank | Category: Movies | Score: 4
+<<<<<<< HEAD
 jenn | Category: Sports | Score: 0
 frank | Category: Sports | Score: 4
 jenn | Category: Movies | Score: 4
 frank | Category: Movies | Score: 4
+=======
+>>>>>>> 62ec7644df757419c76a3fa416ee065484dd7fe0
+>>>>>>> b4204390a3113f48ec1eda52eb0cf85c17e9dbe5

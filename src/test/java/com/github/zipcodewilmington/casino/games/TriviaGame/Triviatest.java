@@ -24,7 +24,7 @@ public class Triviatest {
         // Subclass Trivia to override loadQuestionsFromFile for testing
         trivia = new Trivia(mockConsole) {
             @Override
-            protected void loadQuestionsFromFile(String filename) {
+            public void loadQuestionsFromFile(String filename) {
                 // Instead of loading from file, inject test questions directly
                 questions.clear();
                 questions.add(new Question(

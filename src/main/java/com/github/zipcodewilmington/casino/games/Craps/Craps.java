@@ -7,7 +7,6 @@ import java.util.Scanner;
 
 import com.github.zipcodewilmington.casino.GameInterface;
 import com.github.zipcodewilmington.casino.Player;
-import com.github.zipcodewilmington.casino.games.Craps.CrapsBetting.BetType;
 
 public class Craps implements GameInterface {
 
@@ -176,9 +175,9 @@ public class Craps implements GameInterface {
     // other methods and functions
     // point base game
     private void playPointPhase(List<Player> players, int point) {
+        int i=1;
         while (true) {
-            System.out.println();
-            System.out.println("\n" + ANSI_CYAN + "Press Enter to roll the dice..." + ANSI_RESET);
+            System.out.println("Press Enter to roll the dice...");
             scanner.nextLine();
             typeWriter("Rolling the dice.......", 50);
             flushScreen();
@@ -200,6 +199,7 @@ public class Craps implements GameInterface {
                 betting.payOut(false);
                 break;
             }
+            i++;
         }
     }
 
