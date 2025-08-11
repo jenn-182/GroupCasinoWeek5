@@ -16,3 +16,7 @@ josiah | Category: Computer Science | Score: 0
 jenn | Category: Computer Science | Score: 1
 josiah | Category: Computer Science | Score: 1
 younis | Category: Computer Science | Score: 0
+josiah | Category: Movies | Score: 4
+younis | Category: Movies | Score: 5
+Alice | Category: Science | Score: 1
+Bob | Category: Science | Score: 0
