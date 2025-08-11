@@ -7,7 +7,7 @@ public class Card {
     private String rank;
     private int value;
 
-    Card(String suit, String rank, int value) {
+    public Card(String suit, String rank, int value) {
         this.suit = suit;
         this.rank = rank;
         this.value = value;
