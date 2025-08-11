@@ -1,12 +1,14 @@
 package com.github.zipcodewilmington.casino.games.Poker;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 
 public class Hand {
 
     private Stack<Card> hand;
 
-    Hand() {
+    public Hand() {
         hand = new Stack<>();
     }
 
@@ -27,5 +29,9 @@ public class Hand {
 
     public Stack<Card> gethand() {
         return hand;
+    }
+
+    public List<Card> getCards() {
+        return new ArrayList<>(hand);
     }
 }

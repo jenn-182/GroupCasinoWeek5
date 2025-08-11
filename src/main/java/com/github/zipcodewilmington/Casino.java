@@ -15,20 +15,22 @@ import com.github.zipcodewilmington.casino.Player;
 import com.github.zipcodewilmington.casino.games.Craps.Craps;
 import com.github.zipcodewilmington.casino.games.Poker.Poker;
 import com.github.zipcodewilmington.casino.games.TriviaGame.Trivia;
+import com.github.zipcodewilmington.casino.games.Roulette.RouletteGame;
 import com.github.zipcodewilmington.casino.ui.IOConsole;
 import com.github.zipcodewilmington.casino.ui.UIRender;
+import com.github.zipcodewilmington.casino.games.Numberguess.NumberGuessGame;
 
 /**
  * Created by leon on 7/21/2020. Casino - Main orchestrator of the casino
  * application
  */
 public class Casino implements Runnable {
-
     private final IOConsole console;
     private final CasinoAccountManager accountManager;
     private CasinoAccount currentAccount;
     private boolean isRunning;
     private Scanner scanner = new Scanner(System.in);
+    private UIRender uiRender;
 
     // Constructor
     public Casino() {
@@ -37,12 +39,11 @@ public class Casino implements Runnable {
         this.currentAccount = null;
         this.isRunning = false;
         initializeCasino();
+        this.uiRender = new UIRender();
     }
 
     private void initializeCasino() {
         System.out.println("Initializing Casino...");
-        System.out.println("Account management system loaded.");
-        System.out.println("Game systems initialized.");
         System.out.println("Casino ready for operation!");
     }
 
@@ -61,6 +62,8 @@ public class Casino implements Runnable {
     private void shutdown() {
         isRunning = false;
         System.out.println("Closing Casino...");
+        flushScreen();
+        uiRender.displayGoodbyeMessage();
         System.out.println("All accounts saved.");
         System.out.println("Thank you for visiting the Casino!");
     }
@@ -103,7 +106,8 @@ public class Casino implements Runnable {
         return isRunning;
     }
 
-    // Game orchestration methods
+    // ---------LAUNCH GAME----------
+
     public void launchGame(String gameName, Player player) {
         if (!isValidGameSession(player)) {
             return;
@@ -152,33 +156,56 @@ public class Casino implements Runnable {
         return true;
     }
 
+    // -------------ROULETTE -------------------
+
     public void playRouletteGame(Player player) {
         try {
             UIRender uiRender = new UIRender();
-            uiRender.displayGameWelcomeHeader("Roulette", UIRender.PURPLE);
-
-            System.out.print("Select an option (1-3): ");
-            int choice = scanner.nextInt();
-            scanner.nextLine();
-
-            switch (choice) {
-                case 1:
-                    playSinglePlayerRoulette(player);
-                    break;
-                case 2:
-                    playMultiplayerRoulette(player);
-                    break;
-                case 3:
-                    viewRouletteRules();
-                    break;
-                default:
-                    System.out.println("Invalid choice! Please select 1, 2, or 3.");
-                    break;
+            boolean inMenu = true;
+            while (inMenu) {
+                uiRender.displayRouletteWelcomeHeader();
+                int choice = console.getIntegerInput("Enter your choice (1-3): ");
+                switch (choice) {
+                    case 1:
+                        playSinglePlayerRoulette(player);
+                        inMenu = false;
+                        break;
+                    case 2:
+                        playMultiplayerRoulette(player);
+                        inMenu = false;
+                        break;
+                    case 3:
+                        viewRouletteRules();
+                        // Stay in menu after viewing rules
+                        break;
+                    default:
+                        console.println("Invalid choice! Please select 1, 2, or 3.");
+                        break;
+                }
             }
-
         } catch (Exception e) {
-            System.out.println("Error in Roulette game: " + e.getMessage());
+            console.println("Error in Roulette game: " + e.getMessage());
         }
+    }
+
+    private void playMultiplayerRoulette(Player hostPlayer) {
+        List<Player> players = getMultiplayerPlayers("Roulette", hostPlayer, 6); // up to 6 players
+        if (players.size() >= 2) {
+            console.println("\nStarting Multiplayer Roulette with " + players.size() + " players!");
+            RouletteGame game = new RouletteGame();
+            for (Player p : players) {
+                game.add(p);
+            }
+            game.launchMultiplayer(players);
+
+            console.println("Multiplayer Roulette session completed!");
+            for (Player p : players) {
+                p.getAccount().addGameEntry("Multiplayer Roulette Session");
+            }
+        } else {
+            console.println("Not enough players for multiplayer! Need at least 2.");
+        }
+        console.getStringInput("Press ENTER to continue...");
     }
 
     private void playSinglePlayerRoulette(Player player) {
@@ -188,7 +215,7 @@ public class Casino implements Runnable {
             double initialBalance = player.getAccount().getBalance();
 
             // Use the default RouletteGame constructor
-            com.github.zipcodewilmington.casino.games.Roulette.RouletteGame game = new com.github.zipcodewilmington.casino.games.Roulette.RouletteGame();
+            RouletteGame game = new RouletteGame();
 
             // Run the game
             game.launch(player);
@@ -219,171 +246,99 @@ public class Casino implements Runnable {
         }
     }
 
-    private void playMultiplayerRoulette(Player hostPlayer) {
+    private void viewRouletteRules() {
+
         try {
-            console.println("MULTIPLAYER ROULETTE SETUP");
-            console.println("Host: " + hostPlayer.getUsername());
-
-            int numPlayers = console.getIntegerInput("How many total players? (2-6): ");
-            if (numPlayers < 2 || numPlayers > 6) {
-                console.println("Invalid number! Must be 2-6 players.");
-                return;
-            }
-
-            List<Player> players = new ArrayList<>();
-            players.add(hostPlayer); // Add the host first
-            console.println("Added " + hostPlayer.getUsername() + " as host");
-
-            // Get additional players
-            for (int i = 1; i < numPlayers; i++) {
-                Player additionalPlayer = getAdditionalPlayer(i + 1);
-                if (additionalPlayer != null) {
-                    players.add(additionalPlayer);
-                    console.println("Added " + additionalPlayer.getUsername() + " (Balance: $"
-                            + String.format("%.2f", additionalPlayer.getAccount().getBalance()) + ")");
-                } else {
-                    console.println("Failed to add player " + (i + 1));
-                }
-            }
-
-            if (players.size() >= 2) {
-                console.println("\nStarting Multiplayer Roulette with " + players.size() + " players!");
-
-                // launch multiplayer roulette
-                com.github.zipcodewilmington.casino.games.Roulette.RouletteGame game = new com.github.zipcodewilmington.casino.games.Roulette.RouletteGame();
-
-                game.launchMultiplayer(players);
-
-                console.println("\nMultiplayer Roulette session completed!");
-                console.println("All player balances have been updated.");
-
-                // Add game entries for all players
-                for (Player player : players) {
-                    player.getAccount().addGameEntry("Multiplayer Roulette Session");
-                }
-
-            } else {
-                console.println("Not enough players for multiplayer! Need at least 2.");
-            }
-
-            console.getStringInput("Press ENTER to continue...");
-
+            String rules = new String(Files.readAllBytes(Paths.get(
+                    "/Users/jenn/Projects/GroupCasinoWeek5/src/main/java/com/github/zipcodewilmington/casino/games/Roulette/Rouletterules.md")));
+            flushScreen();
+            System.out.println(rules);
         } catch (Exception e) {
-            console.println("Error in multiplayer Roulette: " + e.getMessage());
-        }
-    }
-
-    // HELPER METHOD TO GET ADDITIONAL PLAYERS
-    private Player getAdditionalPlayer(int playerNumber) {
-        try {
-
-            List<CasinoAccount> allAccounts = new ArrayList<>(accountManager.loadAccounts().values());
-
-            console.println("\nAvailable players for Player " + playerNumber + ":");
-            int idx = 1;
-            Map<Integer, CasinoAccount> indexToAccount = new HashMap<>();
-
-            for (CasinoAccount account : allAccounts) {
-                console.println(idx + ": " + account.getUsername() + " (Balance: $"
-                        + String.format("%.2f", account.getBalance()) + ")");
-                indexToAccount.put(idx, account);
-                idx++;
-            }
-
-            console.println((idx) + ": Create new player");
-
-            int selection = console.getIntegerInput("Select player (or " + idx + " for new): ");
-
-            if (selection == idx) {
-                // Create new player
-                return createNewPlayer();
-            } else {
-                // Use existing player
-                CasinoAccount selectedAccount = indexToAccount.get(selection);
-                if (selectedAccount != null) {
-                    String password = console
-                            .getStringInput("Enter password for " + selectedAccount.getUsername() + ": ");
-                    CasinoAccount verifiedAccount = accountManager.getAccount(selectedAccount.getUsername(), password);
-
-                    if (verifiedAccount != null) {
-                        return verifiedAccount.getPlayer();
-                    } else {
-                        console.println("Incorrect password!");
-                        return null;
-                    }
-                }
-            }
-
-        } catch (Exception e) {
-            console.println("Error getting additional player: " + e.getMessage());
+            System.out.println("Could not load Roulette rules. Please check that Rouletterules.md exists.");
         }
 
-        return null;
+        System.out.println();
+        System.out.print("Press ENTER to return to the menu...");
+        scanner.nextLine();
     }
 
-    // HELPER METHOD TO CREATE NEW PLAYER
-    private Player createNewPlayer() {
-        try {
-            String username = console.getStringInput("Enter username for new player: ");
-            String password = console.getStringInput("Enter password for new player: ");
-            double startingBalance = console.getDoubleInput("Enter starting balance: $");
-
-            if (startingBalance < 10) {
-                console.println("Minimum starting balance is $10!");
-                return null;
-            }
-
-            // Create new account
-            CasinoAccount newAccount = accountManager.createAccount(username, password);
-            if (newAccount != null) {
-                newAccount.deposit(startingBalance);
-                return newAccount.getPlayer();
-            }
-
-        } catch (Exception e) {
-            console.println("Error creating new player: " + e.getMessage());
-        }
-
-        return null;
-    }
+    // ---------- POKER -----------------
 
     public void playPokerGame(Player player) {
         try {
             UIRender uiRender = new UIRender();
-            uiRender.displayGameWelcomeHeader("Poker", UIRender.GREEN);
-            console.println("Starting Poker for " + player.getUsername());
-            player.getAccount().addGameEntry("Played Poker - Demo session");
-            console.println("Poker session completed!");
-            Poker poker = new Poker(player);
-            poker.run();
+            boolean inMenu = true;
+            while (inMenu) {
+                uiRender.displayPokerWelcomeHeader();
+                int choice = console.getIntegerInput("Enter your choice (1-2): ");
+                switch (choice) {
+                    case 1:
+                        playSinglePlayerPoker(player);
+                        inMenu = false;
+                        break;
+                    case 2:
+                        viewPokerRules();
+                        break;
+                    default:
+                        console.println("Invalid choice! Please select 1 or 2.");
+                        break;
+                }
+            }
         } catch (Exception e) {
-            console.println("Error in Poker game: " + e.getMessage());
+            console.println("Error in Poker game menu: " + e.getMessage());
         }
     }
-    // Craps Game
+
+    private void playSinglePlayerPoker(Player player) {
+        console.println("Starting single player Poker for " + player.getUsername());
+        player.getAccount().addGameEntry("Played Poker");
+        Poker poker = new Poker(player);
+        flushScreen();
+        poker.run();
+        console.println("Poker session completed!");
+        console.getStringInput("Press ENTER to continue...");
+    }
+
+    private void viewPokerRules() {
+        try {
+            String rules = new String(Files.readAllBytes(Paths.get(
+                    "/Users/jenn/Projects/GroupCasinoWeek5/src/main/java/com/github/zipcodewilmington/casino/games/Poker/Pokerrules.md")));
+            flushScreen();
+            System.out.println(rules);
+        } catch (Exception e) {
+            System.out.println("Could not load Poker rules. Please check that Pokerrules.md exists.");
+        }
+
+        System.out.println();
+        System.out.print("Press ENTER to return to the menu...");
+        scanner.nextLine();
+    }
+
+    // -----------------CRAPS---------------------
 
     public void playCrapsGame(Player player) {
         try {
             UIRender uiRender = new UIRender();
-            uiRender.displayGameWelcomeHeader("Craps", UIRender.CYAN);
-
-            console.print("Select an option (1-3): ");
-            int choice = scanner.nextInt();
-            scanner.nextLine();
-
-            switch (choice) {
-                case 1:
-                    playSinglePlayerCraps(player);
-                    break;
-                case 2:
-                    playMultiplayerCraps(player);
-                    break;
-                case 3:
-                    viewCrapsRules();
-                    break;
-                default:
-                    console.println("Invalid choice! Please select 1, 2, or 3.");
-                    break;
+            boolean inMenu = true;
+            while (inMenu) {
+                uiRender.displayCrapsWelcomeHeader();
+                int choice = console.getIntegerInput("Enter your choice (1-3): ");
+                switch (choice) {
+                    case 1:
+                        playSinglePlayerCraps(player);
+                        inMenu = false;
+                        break;
+                    case 2:
+                        playMultiplayerCraps(player);
+                        inMenu = false;
+                        break;
+                    case 3:
+                        viewCrapsRules();
+                        break;
+                    default:
+                        console.println("Invalid choice! Please select 1, 2, or 3.");
+                        break;
+                }
             }
         } catch (Exception e) {
             console.println("Error in Craps game menu: " + e.getMessage());
@@ -408,83 +363,38 @@ public class Casino implements Runnable {
     }
 
     private void playMultiplayerCraps(Player hostPlayer) {
-        console.println("Starting multiplayer Craps...");
-        Craps craps = new Craps();
-        craps.add(hostPlayer);
-
-        List<CasinoAccount> allAccounts = new ArrayList<>(accountManager.loadAccounts().values());
-        console.println("Available players to join (excluding you):");
-        int idx = 1;
-        Map<Integer, Player> indexToPlayer = new HashMap<>();
-
-        for (CasinoAccount account : allAccounts) {
-            if (!account.getUsername().equals(hostPlayer.getUsername())) {
-                console.println(idx + ": " + account.getUsername());
-                indexToPlayer.put(idx, account.getPlayer());
-                idx++;
+        List<Player> players = getMultiplayerPlayers("Craps", hostPlayer, 5);
+        if (players.size() >= 2) {
+            console.println("\nStarting Multiplayer Craps with " + players.size() + " players!");
+            Craps craps = new Craps();
+            for (Player p : players) {
+                craps.add(p);
             }
-        }
+            craps.launchMultiplayer(players);
 
-        console.println("You can add up to 4 more players to join (max 5 total).");
-        console.println("Type player number to add, or type END to finish.");
-
-        while (craps.getPlayers().size() < 5) {
-            console.print("Enter player number or END to stop: ");
-            String input = scanner.nextLine().trim();
-
-            if (input.equalsIgnoreCase("END")) {
-                break;
-            }
-
-            try {
-                int selection = Integer.parseInt(input);
-                Player selectedPlayer = indexToPlayer.get(selection);
-                if (selectedPlayer == null) {
-                    console.println("Invalid player number. Try again.");
-                    continue;
-                }
-                if (craps.getPlayers().contains(selectedPlayer)) {
-                    console.println("Player already added. Pick someone else.");
-                    continue;
-                }
-                console.print("Enter password for " + selectedPlayer.getUsername() + ": ");
-                String password = scanner.nextLine();
-                CasinoAccount account = accountManager.getAccount(selectedPlayer.getUsername(), password);
-                if (account != null) {
-                    craps.add(selectedPlayer);
-                    console.println(selectedPlayer.getUsername() + " added successfully.");
-                } else {
-                    console.println("Incorrect password. Player not added.");
-                }
-            } catch (NumberFormatException e) {
-                console.println("Invalid input. Please enter a valid player number or END.");
-            }
-        }
-
-        console.println("Starting Craps with players:");
-        for (Player p : craps.getPlayers()) {
-            console.println("- " + p.getUsername());
-        }
-
-        boolean keepPlaying = true;
-        while (keepPlaying) {
-            craps.play();
-            console.print("Do you want to play another round? (yes/no): ");
-            String playAgain = scanner.nextLine().trim().toLowerCase();
-            if (!playAgain.equals("yes")) {
-                keepPlaying = false;
-                console.println("Thanks for playing Craps!");
-                for (Player p : craps.getPlayers()) {
-                    p.getAccount().addGameEntry("Craps session completed");
+            boolean keepPlaying = true;
+            while (keepPlaying) {
+                craps.play();
+                console.print("Do you want to play another round? (yes/no): ");
+                String playAgain = scanner.nextLine().trim().toLowerCase();
+                if (!playAgain.equals("yes")) {
+                    keepPlaying = false;
+                    console.println("Thanks for playing Craps!");
+                    for (Player p : craps.getPlayers()) {
+                        p.getAccount().addGameEntry("Craps session completed");
+                    }
                 }
             }
+        } else {
+            console.println("Not enough players for multiplayer! Need at least 2.");
         }
+        console.getStringInput("Press ENTER to continue...");
     }
 
     private void viewCrapsRules() {
         try {
-            // Replace with the actual path to your Craps rules file
-            String rules = new String(Files.readAllBytes(Paths.get("/Users/jenn/Projects/GroupCasinoWeek5/src/main/java/com/github/zipcodewilmington/casino/games/Craps/Crapsrules.md")));
+            String rules = new String(Files.readAllBytes(Paths.get(
+                    "/Users/jenn/Projects/GroupCasinoWeek5/src/main/java/com/github/zipcodewilmington/casino/games/Craps/Crapsrules.md")));
             flushScreen();
             console.println(rules);
         } catch (IOException e) {
@@ -494,102 +404,121 @@ public class Casino implements Runnable {
         scanner.nextLine();
     }
 
-    public void playTriviaGame(Player loggedInPlayer) {
+    // ----------------TRIVIA----------------------
+
+    public void playTriviaGame(Player player) {
         try {
             UIRender uiRender = new UIRender();
-            uiRender.displayGameWelcomeHeader("Trivia", UIRender.YELLOW);
-            console.println("Starting Trivia for " + loggedInPlayer.getUsername());
-            loggedInPlayer.getAccount().addGameEntry("Playing Trivia - Session started");
-
-            Trivia triviaGame = new Trivia(console);
-            triviaGame.add(loggedInPlayer);
-
-            // Load all available accounts
-            List<CasinoAccount> allAccounts = new ArrayList<>(accountManager.loadAccounts().values());
-
-            console.println("Available players to join (excluding you):");
-            int idx = 1;
-            Map<Integer, Player> indexToPlayer = new HashMap<>();
-
-            for (CasinoAccount account : allAccounts) {
-                if (!account.getUsername().equals(loggedInPlayer.getUsername())) {
-                    console.println(idx + ": " + account.getUsername());
-                    indexToPlayer.put(idx, account.getPlayer());
-                    idx++;
+            boolean inMenu = true;
+            while (inMenu) {
+                uiRender.displayTriviaWelcomeHeader();
+                int choice = console.getIntegerInput("Enter your choice (1-3): ");
+                switch (choice) {
+                    case 1:
+                        playSinglePlayerTrivia(player);
+                        inMenu = false;
+                        break;
+                    case 2:
+                        playMultiplayerTrivia(player);
+                        inMenu = false;
+                        break;
+                    case 3:
+                        viewTriviaRules();
+                        break;
+                    default:
+                        console.println("Invalid choice! Please select 1, 2, or 3.");
+                        break;
                 }
             }
-
-            console.println("You can add up to 1 more player to join (max 2 total).");
-            console.println("Type player number to add, or type END to play Single Player.");
-
-            while (triviaGame.getPlayers().size() < 2) { // Trivia max 2 players
-                console.print("Enter player number or END to stop: ");
-                String input = console.getStringInput("").trim();
-
-                if (input.equalsIgnoreCase("END")) {
-                    break;
-                }
-
-                try {
-                    int selection = Integer.parseInt(input);
-                    Player selectedPlayer = indexToPlayer.get(selection);
-
-                    if (selectedPlayer == null) {
-                        console.println("Invalid player number. Try again.");
-                        continue;
-                    }
-
-                    if (triviaGame.getPlayers().contains(selectedPlayer)) {
-                        console.println("Player already added. Pick someone else.");
-                        continue;
-                    }
-
-                    // Ask for password
-                    console.print("Enter password for " + selectedPlayer.getUsername() + ": ");
-                    String password = console.getStringInput("").trim();
-
-                    CasinoAccount account = accountManager.getAccount(selectedPlayer.getUsername(), password);
-
-                    if (account != null) {
-                        triviaGame.add(selectedPlayer);
-                        console.println(selectedPlayer.getUsername() + " added successfully.");
-                    } else {
-                        console.println("Incorrect password. Player not added.");
-                    }
-
-                } catch (NumberFormatException e) {
-                    console.println("Invalid input. Please enter a valid player number or END.");
-                }
-            }
-
-            console.println("Starting Trivia with players:");
-            for (Player p : triviaGame.getPlayers()) {
-                console.println("- " + p.getUsername());
-            }
-
-            triviaGame.play(); // Run Trivia game
-            loggedInPlayer.getAccount().addGameEntry("Trivia session completed");
-            console.println("Trivia session completed!");
-
         } catch (Exception e) {
-            console.println("Error in Trivia game: " + e.getMessage());
+            console.println("Error in Trivia game menu: " + e.getMessage());
         }
-
     }
+
+    private void playSinglePlayerTrivia(Player loggedInPlayer) {
+        console.println("Starting Trivia for " + loggedInPlayer.getUsername());
+        loggedInPlayer.getAccount().addGameEntry("Playing Trivia - Session started");
+        Trivia triviaGame = new Trivia(console);
+        triviaGame.add(loggedInPlayer);
+        flushScreen();
+        triviaGame.play(); // Run Trivia game
+        loggedInPlayer.getAccount().addGameEntry("Trivia session completed");
+        console.println("Trivia session completed!");
+        console.getStringInput("Press ENTER to continue...");
+    }
+
+    private void playMultiplayerTrivia(Player hostPlayer) {
+        List<Player> players = getMultiplayerPlayers("Trivia", hostPlayer, 2);
+        if (players.size() >= 2) {
+            console.println("\nStarting Multiplayer Trivia with " + players.size() + " players!");
+            flushScreen();
+            console.println("Host: " + hostPlayer.getUsername());
+            Trivia triviaGame = new Trivia(console);
+            for (Player p : players) {
+                triviaGame.add(p);
+            }
+            triviaGame.launchMultiplayer(players);
+
+            console.println("Multiplayer Trivia session completed!");
+            for (Player player : players) {
+                player.getAccount().addGameEntry("Multiplayer Trivia Session");
+            }
+        } else {
+            console.println("Not enough players for multiplayer! Need at least 2.");
+        }
+        console.getStringInput("Press ENTER to continue...");
+    }
+
+    private void viewTriviaRules() {
+        console.println("Trivia Rules will be displayed here.");
+        console.getStringInput("Press ENTER to continue...");
+    }
+
+    // ----------------NUMBER GUESS-------------------------
 
     public void playNumberGuessGame(Player player) {
         try {
             UIRender uiRender = new UIRender();
-            uiRender.displayGameWelcomeHeader("Number Guess", UIRender.RED);
-            console.println("Starting Number Guess for " + player.getUsername());
-            player.getAccount().addGameEntry("Played Number Guess - Demo session");
-            console.println("Number Guess session completed!");
+            boolean inMenu = true;
+            while (inMenu) {
+                uiRender.displayNumberGuessWelcomeHeader();
+                int choice = console.getIntegerInput("Enter your choice (1-2): ");
+                switch (choice) {
+                    case 1:
+                        playSinglePlayerNumberGuess(player);
+                        inMenu = false;
+                        break;
+                    case 2:
+                        viewNumberGuessRules();
+                        break;
+                    default:
+                        console.println("Invalid choice! Please select 1 or 2.");
+                        break;
+                }
+            }
         } catch (Exception e) {
-            console.println("Error in Number Guess game: " + e.getMessage());
+            console.println("Error in Number Guess game menu: " + e.getMessage());
         }
     }
 
-    // Transaction processing methods
+    private void playSinglePlayerNumberGuess(Player player) {
+        console.println("Starting Number Guess for " + player.getUsername());
+        player.getAccount().addGameEntry("Played Number Guess");
+        flushScreen();
+        NumberGuessGame game = new NumberGuessGame(console);
+        game.launch(player);
+        game.play();
+        console.println("Number Guess session completed!");
+        console.getStringInput("Press ENTER to continue...");
+    }
+
+    private void viewNumberGuessRules() {
+        console.println("Number Guess Rules will be displayed here.");
+        console.getStringInput("Press ENTER to continue...");
+    }
+
+    // ---------------MONEY METHODS----------------------
+
     public boolean processDeposit(Player player, double amount) {
         if (player == null || amount <= 0) {
             return false;
@@ -626,25 +555,111 @@ public class Casino implements Runnable {
         }
     }
 
+    // ------------------MULTI PLAYER METHODS---------------------
+
+    private List<Player> getMultiplayerPlayers(String gameName, Player hostPlayer, int maxPlayers) {
+        List<Player> players = new ArrayList<>();
+        players.add(hostPlayer);
+
+        UIRender uiRender = new UIRender();
+        uiRender.displayMultiplayerHeader(gameName, hostPlayer.getUsername());
+        console.println("You can add up to " + (maxPlayers - 1) + " more players (max " + maxPlayers + " total).");
+
+        int numPlayers = console
+                .getIntegerInput("\nHow many players are playing? (2-" + maxPlayers + "): ");
+        if (numPlayers < 2 || numPlayers > maxPlayers) {
+            console.println(UIRender.RED + "Invalid number! Must be between 2 and " + maxPlayers + " players."
+                    + UIRender.RESET);
+            return players;
+        }
+
+        for (int i = 1; i < numPlayers; i++) {
+            Player additionalPlayer = getAdditionalPlayer(i + 1);
+            if (additionalPlayer != null) {
+                players.add(additionalPlayer);
+                console.println(UIRender.GREEN + "Added " + additionalPlayer.getUsername() + " (Balance: $"
+                        + String.format("%.2f", additionalPlayer.getAccount().getBalance()) + ")" + UIRender.RESET);
+            } else {
+                console.println(UIRender.RED + "Failed to add player " + (i + 1) + UIRender.RESET);
+            }
+        }
+        return players;
+    }
+
+    // HELPER METHOD TO GET ADDITIONAL PLAYERS (from the list of existing accounts)
+    private Player getAdditionalPlayer(int playerNumber) {
+        try {
+            List<CasinoAccount> allAccounts = new ArrayList<>(accountManager.loadAccounts().values());
+
+            flushScreen();
+            uiRender.displayListHeader("Available players for Player " + playerNumber + ":", UIRender.PURPLE);
+
+            Map<Integer, CasinoAccount> indexToAccount = new HashMap<>();
+            int idx = 1;
+            for (CasinoAccount account : allAccounts) {
+                uiRender.displayListItem(idx + ": " + account.getUsername() + " (Balance: $"
+                        + String.format("%.2f", account.getBalance()) + ")", UIRender.PURPLE);
+                indexToAccount.put(idx, account);
+                idx++;
+            }
+            uiRender.displayListItem(idx + ": Create new player", UIRender.PURPLE);
+
+            uiRender.displayListFooter(UIRender.PURPLE);
+
+            int selection = console.getIntegerInput("Select player (or " + idx + " for new): ");
+
+            if (selection == idx) {
+                return createNewPlayer();
+            } else {
+                CasinoAccount selectedAccount = indexToAccount.get(selection);
+                if (selectedAccount != null) {
+                    String password = console
+                            .getStringInput("Enter password for " + selectedAccount.getUsername() + ": ");
+                    CasinoAccount verifiedAccount = accountManager.getAccount(selectedAccount.getUsername(), password);
+
+                    if (verifiedAccount != null) {
+                        return verifiedAccount.getPlayer();
+                    } else {
+                        console.println("Incorrect password!");
+                        return null;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            console.println("Error getting additional player: " + e.getMessage());
+        }
+        return null;
+    }
+
+    // HELPER METHOD TO CREATE NEW PLAYER
+    private Player createNewPlayer() {
+        try {
+            String username = console.getStringInput("Enter username for new player: ");
+            String password = console.getStringInput("Enter password for new player: ");
+            double startingBalance = console.getDoubleInput("Enter starting balance: $");
+
+            if (startingBalance < 10) {
+                console.println("Minimum starting balance is $10!");
+                return null;
+            }
+
+            // Create new account
+            CasinoAccount newAccount = accountManager.createAccount(username, password);
+            if (newAccount != null) {
+                newAccount.deposit(startingBalance);
+                return newAccount.getPlayer();
+            }
+
+        } catch (Exception e) {
+            console.println("Error creating new player: " + e.getMessage());
+        }
+
+        return null;
+    }
+
     public static List<Player> getRegisteredPlayers() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'getRegisteredPlayers'");
-    }
-
-    private void viewRouletteRules() {
-
-        try {
-            String rules = new String(Files.readAllBytes(Paths.get(
-                    "/Users/jenn/Projects/GroupCasinoWeek5/src/main/java/com/github/zipcodewilmington/casino/games/Roulette/Rouletterules.md")));
-            flushScreen();
-            System.out.println(rules);
-        } catch (Exception e) {
-            System.out.println("Could not load Roulette rules. Please check that Rouletterules.md exists.");
-        }
-
-        System.out.println();
-        System.out.print("Press ENTER to return to the menu...");
-        scanner.nextLine();
     }
 
     private void flushScreen() {

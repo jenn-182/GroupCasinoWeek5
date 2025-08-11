@@ -19,6 +19,8 @@ public class UIRender {
         public static final String CYAN = "\u001B[36m";
         public static final String YELLOW = "\u001B[33m";
         public static final String RED = "\u001B[31m";
+        public static final String WHITE = "\u001B[37m";
+        public static final String BLACK = "\u001B[40m";
 
         public void flushScreen() {
                 System.out.print("\033[H\033[2J");
@@ -554,7 +556,7 @@ public class UIRender {
         }
 
         public void displayEmptyMessage(String message, String borderColor) {
-                String messageColor = cyan;
+                String messageColor = white;
                 String background = black;
 
                 System.out.println(
@@ -649,6 +651,143 @@ public class UIRender {
                 System.out.println(color + background
                                 + "╚══════════════════════════════════════════════════════════════════════╝" + RESET);
                 System.out.println();
+        }
+
+        public void displayGameWelcomeHeaderSinglePlayer(String gameName, String color) {
+                String background = black;
+                String textColor = yellow;
+                System.out.println(color + background
+                                + "╔══════════════════════════════════════════════════════════════════════╗" + RESET);
+                System.out.println(color + background + "║" + textColor
+                                + centerText("WELCOME TO " + gameName.toUpperCase(), 70) + RESET + color + background
+                                + "║" + RESET);
+                System.out.println(color + background
+                                + "╠══════════════════════════════════════════════════════════════════════╣" + RESET);
+                System.out.println(color + background + "║" + textColor + centerText("1. Single Player", 70) + RESET
+                                + color + background + "║" + RESET);
+                System.out.println(color + background + "║" + textColor + centerText("2. View Rules", 70) + RESET
+                                + color + background + "║" + RESET);
+                System.out.println(color + background
+                                + "╚══════════════════════════════════════════════════════════════════════╝" + RESET);
+                System.out.println();
+        }
+
+        public void displayRouletteWelcomeHeader() {
+                flushScreen();
+                System.out.println("  ");
+                System.out.println("██████╗  ██████╗ ██╗   ██╗██╗     ███████╗████████╗████████╗███████╗██╗");
+                System.out.println("██╔══██╗██╔═══██╗██║   ██║██║     ██╔════╝╚══██╔══╝╚══██╔══╝██╔════╝██║");
+                System.out.println("██████╔╝██║   ██║██║   ██║██║     █████╗     ██║      ██║   █████╗  ██║");
+                System.out.println("██╔══██╗██║   ██║██║   ██║██║     ██╔══╝     ██║      ██║   ██╔══╝  ╚═╝");
+                System.out.println("██║  ██║╚██████╔╝╚██████╔╝███████╗███████╗   ██║      ██║   ███████╗██╗");
+                System.out.println("╚═╝  ╚═╝ ╚═════╝  ╚═════╝ ╚══════╝╚══════╝   ╚═╝      ╚═╝   ╚══════╝╚═╝");
+                System.out.println("  ");
+                System.out.println("  ");
+                displayGameWelcomeHeader("Roulette", PURPLE);
+        }
+
+        public void displayPokerWelcomeHeader() {
+                flushScreen();
+                System.out.println("  ");
+                System.out.println("         ██████╗  ██████╗ ██╗  ██╗███████╗██████╗     ██╗");
+                System.out.println("         ██╔══██╗██╔═══██╗██║ ██╔╝██╔════╝██╔══██╗    ██║");
+                System.out.println("         ██████╔╝██║   ██║█████╔╝ █████╗  ██████╔╝    ██║");
+                System.out.println("         ██╔═══╝ ██║   ██║██╔═██╗ ██╔══╝  ██╔══██╗    ╚═╝");
+                System.out.println("         ██║     ╚██████╔╝██║  ██╗███████╗██║  ██║    ██╗");
+                System.out.println("         ╚═╝      ╚═════╝ ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝    ╚═╝");
+                System.out.println("  ");
+                System.out.println("  ");
+                displayGameWelcomeHeaderSinglePlayer("Poker", PURPLE);
+        }
+
+        public void displayCrapsWelcomeHeader() {
+                flushScreen();
+                System.out.println("  ");
+                System.out.println("          █████╗██████╗  █████╗ ██████╗ ███████╗    ██╗");
+                System.out.println("        ██╔════╝██╔══██╗██╔══██╗██╔══██╗██╔════╝    ██║");
+                System.out.println("        ██║     ██████╔╝███████║██████╔╝███████╗    ██║");
+                System.out.println("        ██║     ██╔══██╗██╔══██║██╔═══╝ ╚════██║    ╚═╝");
+                System.out.println("        ╚██████╗██║  ██║██║  ██║██║     ███████║    ██╗");
+                System.out.println("         ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚══════╝    ╚═╝");
+                System.out.println("  ");
+                System.out.println("  ");
+                displayGameWelcomeHeader("Craps", PURPLE);
+        }
+
+        public void displayTriviaWelcomeHeader() {
+                flushScreen();
+                System.out.println("  ");
+                System.out.println("        ████████╗██████╗ ██╗██╗   ██╗██╗ █████╗     ██╗");
+                System.out.println("        ╚══██╔══╝██╔══██╗██║██║   ██║██║██╔══██╗    ██║");
+                System.out.println("           ██║   ██████╔╝██║██║   ██║██║███████║    ██║");
+                System.out.println("           ██║   ██╔══██╗██║╚██╗ ██╔╝██║██╔══██║    ╚═╝");
+                System.out.println("           ██║   ██║  ██║██║ ╚████╔╝ ██║██║  ██║    ██╗");
+                System.out.println("           ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═══╝  ╚═╝╚═╝  ╚═╝    ╚═╝");
+                System.out.println("  ");
+                System.out.println("  ");
+                displayGameWelcomeHeader("Trivia", PURPLE);
+        }
+
+        public void displayNumberGuessWelcomeHeader() {
+                flushScreen();
+                System.out.println("  ");
+                System.out.println("       ███╗   ██╗██╗   ██╗███╗   ███╗██████╗ ███████╗██████╗ ");
+                System.out.println("       ████╗  ██║██║   ██║████╗ ████║██╔══██╗██╔════╝██╔══██╗");
+                System.out.println("       ██╔██╗ ██║██║   ██║██╔████╔██║██████╔╝█████╗  ██████╔╝");
+                System.out.println("       ██║╚██╗██║██║   ██║██║╚██╔╝██║██╔══██╗██╔══╝  ██╔══██╗");
+                System.out.println("       ██║ ╚████║╚██████╔╝██║ ╚═╝ ██║██████╔╝███████╗██║  ██║");
+                System.out.println("       ╚═╝  ╚═══╝ ╚═════╝ ╚═╝     ╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝");
+                System.out.println("  ");
+                System.out.println("        ██████╗ ██╗   ██╗███████╗███████╗███████╗    ██╗");
+                System.out.println("       ██╔════╝ ██║   ██║██╔════╝██╔════╝██╔════╝    ██║");
+                System.out.println("       ██║  ███╗██║   ██║█████╗  ███████╗███████╗    ██║");
+                System.out.println("       ██║   ██║██║   ██║██╔══╝  ╚════██║╚════██║    ╚═╝");
+                System.out.println("       ╚██████╔╝╚██████╔╝███████╗███████║███████║    ██╗");
+                System.out.println("        ╚═════╝  ╚═════╝ ╚══════╝╚══════╝╚══════╝    ╚═╝");
+                System.out.println("  ");
+                System.out.println("  ");
+                displayGameWelcomeHeaderSinglePlayer("Number Guess", PURPLE);
+        }
+
+        public void displayMultiplayerHeader(String gameName, String hostName) {
+                flushScreen();
+                String borderColor = PURPLE;
+                String titleColor = YELLOW;
+                String hostColor = GREEN;
+                String background = BLACK; // Use static BLACK for background
+
+                System.out.println(borderColor
+                                + "╔══════════════════════════════════════════════════════════════════════╗" + RESET);
+                System.out.println(borderColor + "║" + background + titleColor
+                                + centerText("  MULTIPLAYER SETUP  ", 70)
+                                + RESET + borderColor + "║" + RESET);
+                System.out.println(borderColor + "║" + background + hostColor
+                                + centerText("Host: " + hostName.toUpperCase(), 70)
+                                + RESET + borderColor + "║" + RESET);
+                System.out.println(borderColor
+                                + "╚══════════════════════════════════════════════════════════════════════╝" + RESET);
+                System.out.println();
+        }
+
+        public void displayGoodbyeMessage() {
+                String borderColor = RED;
+                String titleColor = YELLOW;
+                String background = BLACK;
+                String messageColor = WHITE;
+
+                displayWelcomeHeader();
+                System.out.println(borderColor
+                                + "╔══════════════════════════════════════════════════════════════════════╗" + RESET);
+                System.out.println(
+                                borderColor + "║" + background + titleColor + centerText("THANK YOU FOR PLAYING!", 70)
+                                                + RESET + borderColor + "║" + RESET);
+                System.out.println(borderColor
+                                + "╠══════════════════════════════════════════════════════════════════════╣" + RESET);
+                System.out.println(borderColor + "║" + background + messageColor
+                                + centerText("We hope you enjoyed your time at the casino!", 70) + RESET
+                                + borderColor + "║" + RESET);
+                System.out.println(borderColor
+                                + "╚══════════════════════════════════════════════════════════════════════╝" + RESET);
         }
 
 }

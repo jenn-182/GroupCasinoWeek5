@@ -10,30 +10,32 @@ public interface GameInterface extends Runnable {
      * adds a player to the game
      * @param player the player to be removed from the game
      */
-    boolean add(Player player);
+    public boolean add(Player player);
 
     /**
      * removes a player from the game
      * @param player the player to be removed from the game
      */
-    boolean remove(Player player);
+    public boolean remove(Player player);
 
     /**
      * specifies how the game will run
      */
 
-    void play();
- 
-    boolean isGamblingGame();
- 
-    String getGameName();
- 
-    int getMinimumBet();
- 
-    int getMaximumBet();
+    public void play();
 
-    void launch(Player primaryPlayer);
+    public boolean isGamblingGame();
 
-    void loadQuestionsFromFile(String filename);
+    public String getGameName();
+
+    public int getMinimumBet();
+
+    public int getMaximumBet();
+
+    public void launch(Player primaryPlayer);
+
+    public void launchMultiplayer(List<Player> players);
+
+    public void loadQuestionsFromFile(String filename);
 
 }
